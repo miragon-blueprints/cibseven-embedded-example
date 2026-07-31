@@ -1,6 +1,7 @@
 package io.miragon.blueprint.adapter.inbound.cibseven
 
 import io.miragon.blueprint.application.port.inbound.SendCancellationConfirmationUseCase
+import io.miragon.blueprint.domain.leasing.ApplicationId
 import org.cibseven.bpm.engine.delegate.DelegateExecution
 import org.springframework.stereotype.Component
 
@@ -10,6 +11,6 @@ class SendCancellationConfirmationDelegate(
 ) : BaseDelegate() {
 
     override fun executeTask(execution: DelegateExecution) {
-        useCase.sendCancellationConfirmation(execution.applicationId())
+        useCase.sendCancellationConfirmation(ApplicationId.of(execution.processBusinessKey))
     }
 }

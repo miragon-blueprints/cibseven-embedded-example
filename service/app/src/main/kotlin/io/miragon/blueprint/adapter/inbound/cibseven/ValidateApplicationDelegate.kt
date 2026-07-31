@@ -13,7 +13,7 @@ class ValidateApplicationDelegate(
 
     override fun executeTask(execution: DelegateExecution) {
         try {
-            useCase.validate(applicationId(execution))
+            useCase.validate(execution.applicationId())
         } catch (e: ApplicationInvalidException) {
             throw BpmnError("applicationInvalid", e.reason)
         }

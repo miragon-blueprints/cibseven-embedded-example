@@ -10,6 +10,6 @@ class CancelPolicyDelegate(
 ) : BaseDelegate() {
 
     override fun executeTask(execution: DelegateExecution) {
-        useCase.cancelPolicy(applicationId(execution))
+        useCase.cancelPolicy(execution.applicationId())
     }
 }

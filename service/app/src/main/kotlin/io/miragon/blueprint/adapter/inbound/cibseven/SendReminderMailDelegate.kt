@@ -10,6 +10,6 @@ class SendReminderMailDelegate(
 ) : BaseDelegate() {
 
     override fun executeTask(execution: DelegateExecution) {
-        useCase.sendSignatureReminder(applicationId(execution))
+        useCase.sendSignatureReminder(execution.applicationId())
     }
 }

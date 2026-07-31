@@ -10,6 +10,6 @@ class SendContractDelegate(
 ) : BaseDelegate() {
 
     override fun executeTask(execution: DelegateExecution) {
-        useCase.sendContract(applicationId(execution))
+        useCase.sendContract(execution.applicationId())
     }
 }

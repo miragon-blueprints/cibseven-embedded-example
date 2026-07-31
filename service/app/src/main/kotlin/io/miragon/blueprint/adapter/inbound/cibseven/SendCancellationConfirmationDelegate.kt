@@ -10,6 +10,6 @@ class SendCancellationConfirmationDelegate(
 ) : BaseDelegate() {
 
     override fun executeTask(execution: DelegateExecution) {
-        useCase.sendCancellationConfirmation(applicationId(execution))
+        useCase.sendCancellationConfirmation(execution.applicationId())
     }
 }

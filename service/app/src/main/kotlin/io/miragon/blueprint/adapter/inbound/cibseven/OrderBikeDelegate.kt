@@ -11,7 +11,7 @@ class OrderBikeDelegate(
 ) : BaseDelegate() {
 
     override fun executeTask(execution: DelegateExecution) {
-        val result = useCase.orderBike(applicationId(execution))
+        val result = useCase.orderBike(execution.applicationId())
         execution.setVariable(Variables.ServiceTaskOrderBike.ORDER_ID.value, result.orderId?.value)
         execution.setVariable(Variables.ServiceTaskOrderBike.BIKE_AVAILABLE.value, result.bikeAvailable)
     }

@@ -10,6 +10,6 @@ class CancelContractDelegate(
 ) : BaseDelegate() {
 
     override fun executeTask(execution: DelegateExecution) {
-        useCase.cancelContract(applicationId(execution))
+        useCase.cancelContract(execution.applicationId())
     }
 }

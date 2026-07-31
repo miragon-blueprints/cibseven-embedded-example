@@ -10,6 +10,6 @@ class IssueInsurancePolicyDelegate(
 ) : BaseDelegate() {
 
     override fun executeTask(execution: DelegateExecution) {
-        useCase.issuePolicy(applicationId(execution))
+        useCase.issuePolicy(execution.applicationId())
     }
 }

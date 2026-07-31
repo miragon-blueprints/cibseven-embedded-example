@@ -10,6 +10,6 @@ class SendRejectionDelegate(
 ) : BaseDelegate() {
 
     override fun executeTask(execution: DelegateExecution) {
-        useCase.reject(applicationId(execution))
+        useCase.reject(execution.applicationId())
     }
 }

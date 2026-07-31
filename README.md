@@ -28,6 +28,8 @@ them — so a new project starts from something complete instead of a blank page
   non-interrupting **7-day reminder timer**;
 - a **parallel fork/join**, and a **user task with a Camunda Form** — completable in the Tasklist *or*
   via a REST endpoint;
+- an **execution listener** on a service task and a **task listener** on the user task — the two
+  common listener hooks, wired as Spring beans just like the delegates;
 - **compensation / SAGA** handlers guarded by **error** and **escalation** boundary events;
 - a **call activity** into a second process, a **message event sub-process** (application withdrawal),
   and a **terminate end event**.

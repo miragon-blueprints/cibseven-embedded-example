@@ -25,6 +25,7 @@
         <camunda:properties>
           <camunda:property name="additionalOutputVariables" value="orderId, bikeAvailable" />
         </camunda:properties>
+        <camunda:executionListener event="end" delegateExpression="#{bikeOrderAuditListener}" />
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1oudvdg</bpmn:incoming>
       <bpmn:outgoing>Flow_0bgyqyx</bpmn:outgoing>
@@ -126,6 +127,7 @@
         <camunda:properties>
           <camunda:property name="additionalOutputVariables" value="alternativeFound" />
         </camunda:properties>
+        <camunda:taskListener event="create" delegateExpression="#{clarifyAlternativeTaskListener}" />
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0dbz33i</bpmn:incoming>
       <bpmn:outgoing>Flow_1q8awsj</bpmn:outgoing>

@@ -97,6 +97,7 @@ abstract class NamingConventionArchitectureTest(
                     listOf(
                         AllowedSuffix("Delegate", "JavaDelegate invoked by a BPMN service task"),
                         AllowedSuffix("Worker", "external-task worker subscribed to a BPMN topic"),
+                        AllowedSuffix("Listener", "ExecutionListener/TaskListener invoked by a BPMN element"),
                     ),
             )
         }

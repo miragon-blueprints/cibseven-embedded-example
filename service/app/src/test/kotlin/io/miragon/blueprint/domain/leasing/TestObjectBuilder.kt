@@ -14,6 +14,7 @@ fun testLeasingApplication(
     bikeId: BikeId = BikeId("BIKE-900"),
     status: LeasingStatus = LeasingStatus.RECEIVED,
     orderId: OrderId? = null,
+    contractId: ContractId? = null,
 ) = LeasingApplication(
     id = id,
     customerName = customerName,
@@ -23,4 +24,5 @@ fun testLeasingApplication(
     bikeId = bikeId,
     status = status,
     orderId = orderId,
+    contractId = contractId,
 )

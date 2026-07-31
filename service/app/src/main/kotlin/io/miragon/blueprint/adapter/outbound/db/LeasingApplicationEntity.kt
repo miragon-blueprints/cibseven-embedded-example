@@ -38,6 +38,9 @@ data class LeasingApplicationEntity(
     @Column(name = "order_id")
     val orderId: String? = null,
 
+    @Column(name = "contract_id")
+    val contractId: String? = null,
+
     @Column(name = "created_at", nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 )

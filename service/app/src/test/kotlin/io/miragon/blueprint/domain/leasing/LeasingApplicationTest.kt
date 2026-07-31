@@ -29,6 +29,16 @@ class LeasingApplicationTest {
     }
 
     @Test
+    fun `withContract records the issued contract`() {
+        // given: an application without a contract yet
+        val application = testLeasingApplication()
+        // when: the contract system issues a contract
+        val updated = application.withContract(ContractId("CONTRACT-1"))
+        // then: the contract id is recorded
+        assertThat(updated.contractId).isEqualTo(ContractId("CONTRACT-1"))
+    }
+
+    @Test
     fun `reject changes the status to REJECTED`() {
         // given: a received application
         val application = testLeasingApplication()

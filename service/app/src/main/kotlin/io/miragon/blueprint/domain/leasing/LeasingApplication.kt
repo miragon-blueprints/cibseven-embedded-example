@@ -16,6 +16,7 @@ data class LeasingApplication(
     val bikeId: BikeId,
     val status: LeasingStatus,
     val orderId: OrderId? = null,
+    val contractId: ContractId? = null,
 ) {
 
     /** Ensures the application is fundamentally processable; throws otherwise. */
@@ -25,6 +26,10 @@ data class LeasingApplication(
         }
         return this
     }
+
+    /** Records the contract the contract system issued for this application. */
+    fun withContract(contractId: ContractId): LeasingApplication =
+        copy(contractId = contractId)
 
     /** Records the placed order on the application and moves it to ORDERED. */
     fun documentOrder(orderId: OrderId): LeasingApplication =

@@ -28,6 +28,7 @@ class GetLeasingApplicationController(
         val bikeModel: String?,
         val status: String,
         val orderId: String?,
+        val contractId: String?,
     )
 
     private fun GetLeasingApplicationQuery.Result.toDto() =
@@ -40,5 +41,6 @@ class GetLeasingApplicationController(
             bikeModel = bikeModel,
             status = application.status.name,
             orderId = application.orderId?.value,
+            contractId = application.contractId?.value,
         )
 }

@@ -9,6 +9,8 @@ import io.miragon.blueprint.domain.bike.Bike
 import io.miragon.blueprint.domain.leasing.LeasingApplication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Clock
+import java.time.LocalDateTime
 
 @Service
 @Transactional
@@ -16,6 +18,7 @@ class SubmitLeasingRequestService(
     private val repository: LeasingApplicationRepository,
     private val bikePortfolio: BikePortfolioRepository,
     private val process: LeasingProcess,
+    private val clock: Clock,
 ) : SubmitLeasingRequestUseCase {
 
     override fun submit(command: SubmitLeasingRequestUseCase.Command): ApplicationId {
@@ -29,6 +32,7 @@ class SubmitLeasingRequestService(
                 age = command.age,
                 monthlyNetIncome = command.monthlyNetIncome,
                 bikeId = command.bikeId,
+                createdAt = LocalDateTime.now(clock),
             )
         repository.save(application)
         process.submitRequest(application)

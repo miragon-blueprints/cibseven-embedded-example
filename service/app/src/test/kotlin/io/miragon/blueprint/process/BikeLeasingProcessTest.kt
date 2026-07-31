@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
+import java.time.LocalDateTime
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -273,6 +274,7 @@ class BikeLeasingProcessTest {
                 monthlyNetIncome = income,
                 bikeId = BikeId(bikeId),
                 status = LeasingStatus.RECEIVED,
+                createdAt = LocalDateTime.now(),
             )
         process.submitRequest(application)
         return application.id

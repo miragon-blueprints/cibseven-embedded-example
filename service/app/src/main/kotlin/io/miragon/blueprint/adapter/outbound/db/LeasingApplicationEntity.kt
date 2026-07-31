@@ -41,6 +41,6 @@ data class LeasingApplicationEntity(
     @Column(name = "contract_id")
     val contractId: String? = null,
 
-    @Column(name = "created_at", nullable = false)
-    val createdAt: LocalDateTime = LocalDateTime.now(),
+    @Column(name = "created_at", nullable = false, updatable = false)
+    val createdAt: LocalDateTime,
 )

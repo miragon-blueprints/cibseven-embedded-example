@@ -2,6 +2,7 @@ package io.miragon.blueprint.domain.leasing
 
 import io.miragon.blueprint.domain.bike.BikeId
 import io.miragon.blueprint.domain.bike.OrderId
+import java.time.LocalDateTime
 
 /**
  * Aggregate root of the bike-leasing domain. All state transitions return a copy, so an instance is
@@ -15,6 +16,7 @@ data class LeasingApplication(
     val monthlyNetIncome: Double,
     val bikeId: BikeId,
     val status: LeasingStatus,
+    val createdAt: LocalDateTime,
     val orderId: OrderId? = null,
     val contractId: ContractId? = null,
 ) {
@@ -53,6 +55,7 @@ data class LeasingApplication(
             age: Int,
             monthlyNetIncome: Double,
             bikeId: BikeId,
+            createdAt: LocalDateTime,
         ): LeasingApplication =
             LeasingApplication(
                 id = id,
@@ -62,6 +65,7 @@ data class LeasingApplication(
                 monthlyNetIncome = monthlyNetIncome,
                 bikeId = bikeId,
                 status = LeasingStatus.RECEIVED,
+                createdAt = createdAt,
             )
     }
 }

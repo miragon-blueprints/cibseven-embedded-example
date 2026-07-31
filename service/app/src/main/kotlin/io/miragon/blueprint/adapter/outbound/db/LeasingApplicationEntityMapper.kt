@@ -19,6 +19,7 @@ object LeasingApplicationEntityMapper {
             monthlyNetIncome = entity.monthlyNetIncome,
             bikeId = BikeId(entity.bikeId),
             status = entity.status,
+            createdAt = entity.createdAt,
             orderId = entity.orderId?.let { OrderId(it) },
             contractId = entity.contractId?.let { ContractId(it) },
         )
@@ -32,6 +33,7 @@ object LeasingApplicationEntityMapper {
             monthlyNetIncome = domain.monthlyNetIncome,
             bikeId = domain.bikeId.value,
             status = domain.status,
+            createdAt = domain.createdAt,
             orderId = domain.orderId?.value,
             contractId = domain.contractId?.value,
         )

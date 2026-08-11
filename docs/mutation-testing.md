@@ -56,6 +56,8 @@ but check too little.
   mutation coverage** per class and highlights each surviving mutant inline in the source.
 - **Machine-readable:** `service/app/build/reports/pitest/mutations.xml` (consumed by CI).
 - The task fails if the mutation score drops below the configured **threshold** (regression gate).
+- **CI:** a dedicated **`mutation` job** in [`.github/workflows/pre-merge.yml`](../.github/workflows/pre-merge.yml)
+  runs `:service:app:pitest`, fails under the threshold, and uploads the HTML report as an artifact.
 
 ### Configuration
 
@@ -69,7 +71,7 @@ Configured in [`service/app/build.gradle.kts`](../service/app/build.gradle.kts) 
   tests** (`process.*`) and the **ArchUnit/Konsist** structural tests (`architecture.*`) are excluded
   from the kill-set — they would make every run slow and non-deterministic without adding mutation
   signal.
-- **Threshold:** `mutationThreshold = 80` (see the evaluation below for why not 100).
+- **Threshold:** `mutationThreshold = 80` (see [the Kotlin caveat](#the-kotlin-caveat-important) for why not 100).
 
 ---
 
@@ -101,23 +103,6 @@ We proved this during the spike: the `GetLeasingApplicationController.toDto()` s
 asserted — a strong signal they are equivalent, not a real gap. All ~23 residual survivors are of
 this kind (value-class null-checks, nullable-field mapping, trivial `getX()` accessors, defensive
 `?: error(...)` guards). That is why **100% is not reachable here** and the threshold sits at 80.
-
----
-
-## Evaluation (spike)
-
-Trial run of PIT as an AI-development guardrail on `service:app`. Findings against the criteria:
-
-| Criterion | Finding |
-| --- | --- |
-| **Integration** | Small: one Gradle plugin (`info.solidsoft.pitest`) + a `pitest { }` block. Works on Gradle 9.5.1 / JDK 21 / Kotlin 2.4 / JUnit 5 out of the box. (For Maven the equivalent is the `pitest-maven` plugin.) |
-| **Baseline & threshold** | Before tuning: **72%** mutation score, 88% line coverage, 11 no-coverage. After excluding process-only glue and fixing two weak tests: **82%** mutation score, **97%** line coverage, 3 no-coverage, 84% test strength. Gate set to **80** (2-pt buffer; residual is stable Kotlin equivalent-mutant noise). |
-| **Report readability** | Good for review: the HTML report shows killed/survived inline in the source with the exact mutation; `mutations.xml` drives the CI gate. |
-| **Runtime overhead** | Local warm run of `:service:app:pitest` ≈ **1m20s** analysis (~2m incl. compile) for 125 mutations / 131 tests, vs. a few seconds for `:service:app:test`. Scales with mutations × covering tests — fine for this module; for larger modules prefer scoping (incremental analysis / nightly). |
-| **Guardrail fit for AI-generated tests** | Strong. It directly catches the failure mode of AI-written tests (see below) and produces an actionable, per-line signal the AI can then fix. Kept as a **non-blocking-until-tuned CI gate** here. |
-
-CI: a dedicated **`mutation` job** in [`.github/workflows/pre-merge.yml`](../.github/workflows/pre-merge.yml)
-runs `:service:app:pitest`, fails under the threshold, and uploads the HTML report as an artifact.
 
 ---
 

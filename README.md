@@ -80,6 +80,9 @@ stack/                         Postgres dev stack (docker compose)
   abort, DMN rejection, and the bike-unavailable → alternative-selection loop.
 - **Model validation** (`bpmn-to-code-testing`) checks the `.bpmn` models structurally at build time
   (`BpmnRules.all()` plus a custom rule requiring every service task to use a delegate expression).
+- **Mutation testing** (PIT / `./gradlew :service:app:pitest`) grades how *strong* the unit tests are
+  — whether they'd catch a regression, not just execute the code. Guarded by a CI mutation-score gate.
+  See [docs/mutation-testing.md](docs/mutation-testing.md).
 - **Bruno + CI** proves the same scenarios against the *running* app: domain REST endpoints drive the
   business actions, and the CIB seven `/engine-rest` API completes user tasks and fires timer jobs so
   the whole flow runs in the pipeline without real 14-day waits.

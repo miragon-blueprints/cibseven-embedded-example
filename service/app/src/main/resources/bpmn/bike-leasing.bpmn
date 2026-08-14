@@ -18,7 +18,7 @@
       <bpmn:outgoing>Flow_0cq39pq</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_0233gqq" messageRef="Message_LeasingRequestReceived" />
     </bpmn:startEvent>
-    <bpmn:serviceTask id="serviceTask_orderBike" name="Order bike from dealer" camunda:asyncAfter="true" camunda:delegateExpression="#{orderBikeDelegate}">
+    <bpmn:serviceTask id="serviceTask_orderBike" name="Order bike from dealer" camunda:asyncBefore="true" camunda:delegateExpression="#{orderBikeDelegate}">
       <bpmn:extensionElements>
         <!-- Result variables the orderBikeDelegate writes; declared for bpmn-to-code without a
              self-referential I/O mapping. -->
@@ -26,6 +26,12 @@
           <camunda:property name="additionalOutputVariables" value="orderId, bikeAvailable" />
         </camunda:properties>
         <camunda:executionListener event="end" delegateExpression="#{bikeOrderAuditListener}" />
+        <!-- Incident demo: asyncBefore makes the order step its own job, so the delegate runs (and
+             retries) as this activity's job rather than in the upstream continuation — that is what
+             lets the retry cycle below apply and pins the failing job to serviceTask_orderBike.
+             3 retries, 10s apart, so the countdown is visible in the Cockpit before an incident is
+             raised (~30s). Reproduce it with the 06-incident-demo Bruno collection. -->
+        <camunda:failedJobRetryTimeCycle>R3/PT10S</camunda:failedJobRetryTimeCycle>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1oudvdg</bpmn:incoming>
       <bpmn:outgoing>Flow_0bgyqyx</bpmn:outgoing>

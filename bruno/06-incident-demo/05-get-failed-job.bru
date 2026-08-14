@@ -1,0 +1,21 @@
+meta {
+  name: Inspect the failed order job
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{engineRest}}/job?processInstanceId={{processInstanceId}}&withException=true
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body[0].id: isDefined
+  res.body[0].retries: eq 0
+}
+
+vars:post-response {
+  failedJobId: res.body[0].id
+}

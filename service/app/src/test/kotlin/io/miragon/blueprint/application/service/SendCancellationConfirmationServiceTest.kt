@@ -3,6 +3,7 @@ package io.miragon.blueprint.application.service
 import io.miragon.blueprint.application.port.outbound.LeasingApplicationRepository
 import io.miragon.blueprint.application.port.outbound.NotificationPort
 import io.miragon.blueprint.domain.leasing.testLeasingApplication
+import io.miragon.blueprint.domain.leasing.LeasingStatus
 import io.mockk.Runs
 import io.mockk.confirmVerified
 import io.mockk.every
@@ -18,19 +19,21 @@ class SendCancellationConfirmationServiceTest {
     private val underTest = SendCancellationConfirmationService(repository = repository, notification = notification)
 
     @Test
-    fun `sendCancellationConfirmation loads the application and confirms the cancellation`() {
+    fun `sendCancellationConfirmation loads the application, notifies the customer and persists the cancelled status`() {
 
         // given: an application in the repository
         val application = testLeasingApplication()
         every { repository.findById(application.id) } returns application
         every { notification.send(any(), application) } just Runs
+        every { repository.save(any()) } answers { firstArg() }
 
         // when: the cancellation confirmation is sent
         underTest.sendCancellationConfirmation(application.id)
 
-        // then: the application is loaded and the customer is informed
+        // then: the application is loaded, the customer informed and the application saved as CANCELLED
         verify { repository.findById(application.id) }
         verify { notification.send(any(), application) }
+        verify { repository.save(match { it.status == LeasingStatus.CANCELLED }) }
         confirmVerified(repository, notification)
     }
 }

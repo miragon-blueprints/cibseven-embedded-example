@@ -1,22 +1,43 @@
+# Conductor workspace settings for the CIB seven embedded bike-leasing blueprint.
+#
+# This stack binds fixed ports (Postgres 5432, backend 8080 — which also serves the embedded CIB
+# seven webapp/Cockpit and engine-rest), so only one workspace can run the app at a time — hence
+# run_mode = "nonconcurrent". portless is deliberately deferred: it only wraps a JS dev server, while
+# both of this stack's collisions are Postgres and the Spring/engine schema. See
+# docs/adr/0006-fixed-ports-for-v1-portless-as-the-upgrade.md.
+
 "$schema" = "https://conductor.build/schemas/settings.repo.schema.json"
 
 [scripts]
 run_mode = "nonconcurrent"
 
-# One-time setup per workspace: install BPMN linting tooling.
-setup = "npm --prefix tools ci"
+# One-time setup per workspace: install BPMN linting tooling + git hooks.
+setup = """
+npm ci
+npm run hooks:install
+"""
 
 # Tear down the local Postgres container when a workspace is archived.
 archive = "docker compose -f stack/docker-compose.yml down -v || true"
 
+# Named run targets — none is defaulted, so nothing autostarts. Start what you need from the Run menu.
+
+# Local Postgres for the engine + read model.
 [scripts.run.infra]
 command = "docker compose -f stack/docker-compose.yml up"
+icon = "database"
 
+# The Spring Boot application (embedded CIB seven engine).
 [scripts.run.backend]
 command = "./gradlew :service:app:bootRun"
+icon = "play"
 
+# Full verification: arch + unit + process + model-validation + OpenAPI spec export.
 [scripts.run.test]
 command = "./gradlew build"
+icon = "check"
 
+# Bruno API smoke tests against a running local stack.
 [scripts.run.smoke]
 command = "cd bruno && npx --yes @usebruno/cli run . --env local -r"
+icon = "flask"

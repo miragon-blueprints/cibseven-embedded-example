@@ -27,7 +27,7 @@ Most engine examples stop at a happy-path service task. This one deliberately wa
 palette of BPMN elements you actually meet in real processes** — and the engineering scaffolding around
 them — so a new project starts from something complete instead of a blank page:
 
-![The bike-leasing process](docs/bike-leasing.png)
+![The bike-leasing process](docs/assets/bike-leasing.png)
 
 - a **message start event**, **service tasks** (JavaDelegates) and a **DMN business-rule task**;
 - an **embedded sub-process** with an **event-based gateway** (sign vs. a 14-day deadline) and a
@@ -46,30 +46,37 @@ them — so a new project starts from something complete instead of a blank page
 service/
   common-architecture-tests/   reusable ArchUnit + Konsist rule suite (src/main)
   app/                         the CIB seven bike-leasing service (hexagonal)
-    adapter/inbound/rest        domain REST controllers
+    adapter/inbound/rest        domain REST controllers + OpenAPI / problem-details config
     adapter/inbound/cibseven    JavaDelegates for the BPMN service tasks
-    adapter/outbound/cibseven   drives the engine (RuntimeService / TaskService)
+    adapter/outbound/cibseven   drives the engine (RuntimeService / TaskService) + task inbox
     adapter/outbound/db         JPA persistence (leasing applications + bike portfolio)
     adapter/outbound/dealer     simulated bike dealer (stock check + order)
     adapter/process             generated *ProcessApi (bpmn-to-code) + engine config
     application/{port,service}  use-case ports and their services
     domain/{leasing,bike}       pure domain model
     resources/{bpmn,dmn,forms}  the process models and Camunda Forms
+    resources/db/migration      Flyway versioned schema migrations
 bruno/                         REST scenarios (happy-path / escalation / abort / not-solvent / …)
-tools/                         BPMN linting (bpmnlint)
+openapi/                       the checked-in, drift-gated OpenAPI contract (openapi.json)
+docs/                          Architecture Decision Records + diagrams
 stack/                         Postgres dev stack (docker compose)
-.github/                       pre-merge pipeline + Dependabot
+.github/                       pre-merge + nightly pipelines + Dependabot
+package.json                   root-level bpmnlint config + git-hook installer
 ```
 
-- **Stack:** Kotlin 2.4 · Spring Boot 4 · CIB seven 2.2 (embedded) · PostgreSQL · Gradle with a
-  `libs.versions.toml` version catalog.
+- **Stack:** Kotlin 2.4 · Spring Boot 4 · CIB seven 2.2 (embedded) · PostgreSQL · Flyway · Gradle with
+  a `libs.versions.toml` version catalog.
 - **Generated process API:** the [`bpmn-to-code`](https://github.com/emaarco/bpmn-to-code) Gradle
   plugin turns each `.bpmn` into a typed `*ProcessApi` object, so element ids, messages, timers and
   variables are compile-checked constants used by both delegates and tests.
 - **Forms:** Camunda Forms (`.form`) are deployed with the process and render in the CIB seven
   Tasklist/Cockpit for the user tasks.
-- **BPMN linting:** [`bpmnlint`](https://github.com/bpmn-io/bpmnlint) (`bpmnlint:recommended`) gates
-  the `.bpmn` models in `tools/`, run in CI before the Gradle build.
+- **OpenAPI contract:** `springdoc` serves the live spec at `/v3/api-docs` (Swagger UI at
+  `/swagger-ui.html`); a test exports it to [`openapi/openapi.json`](openapi/openapi.json) and CI fails
+  on drift, so the committed contract can never lie about the code (see ADR-0003).
+- **BPMN linting:** [`bpmnlint`](https://github.com/bpmn-io/bpmnlint) — `bpmnlint:recommended`,
+  `camunda-compat` and the central [`@miragon/bpmnlint-plugin-rules`](https://www.npmjs.com/package/@miragon/bpmnlint-plugin-rules)
+  — gates the `.bpmn` models (`--max-warnings=0`), run in CI and as a pre-commit hook.
 
 ## Design decisions
 
@@ -86,10 +93,17 @@ stack/                         Postgres dev stack (docker compose)
   abort, DMN rejection, and the bike-unavailable → alternative-selection loop.
 - **Model validation** (`bpmn-to-code-testing`) checks the `.bpmn` models structurally at build time
   (`BpmnRules.all()` plus a custom rule requiring every service task to use a delegate expression).
+- **Mutation testing** (PIT, gate 80) grades assertion strength, not just line coverage — diff-scoped
+  on every PR and a full sweep nightly (ADR-0004).
 - **Bruno + CI** proves the same scenarios against the *running* app: domain REST endpoints drive the
   business actions, and the CIB seven `/engine-rest` API completes user tasks and fires timer jobs so
   the whole flow runs in the pipeline without real 14-day waits.
-- **Dependabot** keeps Gradle, the Postgres image and GitHub Actions current.
+- **Ops-ready out of the box:** Flyway versioned migrations with Hibernate on `validate` (ADR-0010),
+  actuator health/liveness/readiness probes + Prometheus metrics (ADR-0009), and an OCI image built by
+  `./gradlew :service:app:bootBuildImage` — no Dockerfile (ADR-0011).
+- **Dependabot** keeps Gradle, the Postgres image, the BPMN tooling and GitHub Actions current.
+
+The *why* behind each of these choices is recorded as an [Architecture Decision Record](docs/README.md).
 
 ## Run it
 
@@ -97,11 +111,12 @@ stack/                         Postgres dev stack (docker compose)
 # 1. start Postgres
 docker compose -f stack/docker-compose.yml up -d
 
-# 2. run the app (CIB seven Cockpit/Tasklist at http://localhost:8080/camunda, admin/admin)
+# 2. run the app (CIB seven Cockpit/Tasklist at http://localhost:8080/camunda, admin/admin;
+#    Swagger UI at http://localhost:8080/swagger-ui.html)
 ./gradlew :service:app:bootRun
 
 # 3. lint the BPMN models
-npm --prefix tools ci && npm --prefix tools run lint:bpmn
+npm ci && npm run lint:bpmn
 
 # 4. drive the scenarios (build + arch + process tests first, then the REST flows)
 ./gradlew build

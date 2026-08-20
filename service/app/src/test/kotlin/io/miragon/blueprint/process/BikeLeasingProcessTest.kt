@@ -3,6 +3,7 @@ package io.miragon.blueprint.process
 import com.ninjasquad.springmockk.MockkBean
 import io.miragon.blueprint.adapter.process.BikeLeasingProcessProcessApi.Elements
 import io.miragon.blueprint.adapter.process.CancelBikeOrderProcessApi
+import io.miragon.blueprint.application.port.inbound.ActivateLeasingUseCase
 import io.miragon.blueprint.application.port.inbound.BookCancellationCostsUseCase
 import io.miragon.blueprint.application.port.inbound.CancelContractUseCase
 import io.miragon.blueprint.application.port.inbound.CancelInsurancePolicyUseCase
@@ -89,6 +90,9 @@ class BikeLeasingProcessTest {
     @MockkBean(relaxed = true)
     private lateinit var orderBikeUseCase: OrderBikeUseCase
 
+    @MockkBean(relaxed = true)
+    private lateinit var activateLeasingUseCase: ActivateLeasingUseCase
+
     @BeforeEach
     fun setUp() {
         init(processEngine)
@@ -134,6 +138,7 @@ class BikeLeasingProcessTest {
 
         verify(exactly = 1) { sendContractUseCase.sendContract(id) }
         verify(exactly = 1) { issueInsurancePolicyUseCase.issuePolicy(id) }
+        verify(exactly = 1) { activateLeasingUseCase.activate(id) }
     }
 
     @Test
@@ -153,7 +158,7 @@ class BikeLeasingProcessTest {
             .isEnded
             .hasPassed(
                 Elements.EVENT_SIGNATURE_DEADLINE.value,
-                Elements.BOUNDARY_CONTRACT_NOT_SIGNED.value,
+                Elements.EVENT_CONTRACT_NOT_SIGNED.value,
                 Elements.SERVICE_TASK_SEND_REJECTION.value,
                 Elements.END_EVENT_APPLICATION_REJECTED.value,
             )
@@ -262,6 +267,7 @@ class BikeLeasingProcessTest {
             )
 
         verify(exactly = 2) { orderBikeUseCase.orderBike(id) }
+        verify(exactly = 1) { activateLeasingUseCase.activate(id) }
     }
 
     private fun submit(age: Int, income: Double, bikeId: String = "BIKE-TEST"): ApplicationId {

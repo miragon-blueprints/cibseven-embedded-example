@@ -39,5 +39,5 @@ icon = "check"
 
 # Bruno API smoke tests against a running local stack.
 [scripts.run.smoke]
-command = "cd bruno && npx --yes @usebruno/cli run . --env local -r"
+command = "cd bruno && npx --yes @usebruno/cli@4.0.0 run . --env local -r"
 icon = "flask"

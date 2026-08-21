@@ -11,9 +11,10 @@ get {
 }
 
 script:pre-request {
-  // The order job retries 3 times, 10s apart (R3/PT10S), before the incident is raised.
-  // Wait out the retry window so the incident exists by the time we query.
-  await new Promise((resolve) => setTimeout(resolve, 40000));
+  await pollEngine("/incident?processInstanceId=" + bru.getVar("processInstanceId")
+    + "&incidentType=failedJob",
+    (b) => Array.isArray(b) && b.length >= 1,
+    { timeoutMs: 60000 });
 }
 
 assert {

@@ -11,8 +11,8 @@ get {
 }
 
 script:pre-request {
-  // The whole validate -> DMN -> reject chain runs through the async job executor.
-  await new Promise((resolve) => setTimeout(resolve, 2500));
+  await pollApp("/api/bike-leasing/" + bru.getVar("applicationId"),
+    (b, s) => s === 200 && b && b.status === "REJECTED");
 }
 
 assert {

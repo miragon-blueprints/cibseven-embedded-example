@@ -11,8 +11,8 @@ post {
 }
 
 script:pre-request {
-  // Wait for the re-order of the alternative bike to succeed and the parallel branches to join.
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  await pollApp("/api/bike-leasing/" + bru.getVar("applicationId"),
+    (b, s) => s === 200 && b && b.status === "ORDERED" && b.orderId != null);
 }
 
 assert {

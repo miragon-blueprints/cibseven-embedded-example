@@ -117,8 +117,14 @@ jobs:
         with:
           node-version: '22'
 
+      # Install the parent POM + shared module so the app can be run on its own below. spring-boot:run
+      # must target ONLY the app module: invoking it across the reactor (-am) would run it on the root
+      # pom project first, which has no main class ("Unable to find a suitable main class").
+      - name: Build the application
+        run: mvn -B -ntp -DskipTests -Dcheckstyle.skip install
+
       - name: Start the application
-        run: mvn -B -ntp -pl service/app -am spring-boot:run > app.log 2>&1 &
+        run: mvn -B -ntp -pl service/app spring-boot:run > app.log 2>&1 &
 
       - name: Wait for the engine to be ready
         run: |

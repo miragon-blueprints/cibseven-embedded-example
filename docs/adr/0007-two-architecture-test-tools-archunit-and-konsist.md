@@ -40,3 +40,18 @@ fail `./gradlew build`):
   to know which tool owns which kind of rule.
 - **Neutral:** this is the deliberate **ceiling**, not a starting point. New structural rules go into
   whichever of these two fits — we do **not** add a third architecture/guardrail framework on top.
+
+## Update (ported to Java/Maven, 2026-08-23)
+
+When the backend was ported from Kotlin to Java 21, **Konsist was dropped** — it analyses only Kotlin
+source (a PSI tree), so it has nothing to read in a Java codebase. Its two source-structure
+guidelines are now enforced by the **maven-checkstyle-plugin** reading `config/checkstyle/checkstyle.xml`:
+
+- `OneTopLevelClass` — at most one top-level type per file;
+- `AvoidStarImport` (with `java.util` excepted) — no wildcard imports.
+
+Both **fail the build** exactly as the Konsist rules did, and the generated `adapter/process` package
+is excluded via the plugin's `<excludes>`. **ArchUnit is unchanged**: it reads bytecode, which is
+language-neutral, and still owns the layered-dependency and naming rules. The two-tools decision above
+therefore still holds — only the *source* tool changed (Konsist → Checkstyle), which is why the file
+keeps its original title.

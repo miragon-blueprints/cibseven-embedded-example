@@ -29,12 +29,12 @@ icon = "database"
 
 # The Spring Boot application (embedded CIB seven engine).
 [scripts.run.backend]
-command = "./gradlew :service:app:bootRun"
+command = "mvn -pl service/app spring-boot:run"
 icon = "play"
 
-# Full verification: arch + unit + process + model-validation + OpenAPI spec export.
+# Full verification: arch + unit + process + model-validation + OpenAPI spec export + checkstyle.
 [scripts.run.test]
-command = "./gradlew build"
+command = "mvn verify"
 icon = "check"
 
 # Bruno API smoke tests against a running local stack.

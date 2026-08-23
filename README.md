@@ -8,7 +8,7 @@
 
 A ready-to-fork **starting point** for automating a business process on
 [CIB seven](https://cibseven.org) (the community fork of Camunda 7) with an **embedded engine**,
-Spring Boot and Kotlin — one complete, runnable, production-shaped BPMN service you can clone and make
+Spring Boot and Java — one complete, runnable, production-shaped BPMN service you can clone and make
 your own.
 
 ## The scenario
@@ -44,7 +44,7 @@ them — so a new project starts from something complete instead of a blank page
 
 ```
 service/
-  common-architecture-tests/   reusable ArchUnit + Konsist rule suite (src/main)
+  common-architecture-tests/   reusable ArchUnit rule suite (src/main/java)
   app/                         the CIB seven bike-leasing service (hexagonal)
     adapter/inbound/rest        domain REST controllers + OpenAPI / problem-details config
     adapter/inbound/cibseven    JavaDelegates for the BPMN service tasks
@@ -61,13 +61,14 @@ openapi/                       the checked-in, drift-gated OpenAPI contract (ope
 docs/                          Architecture Decision Records + diagrams
 stack/                         Postgres dev stack (docker compose)
 .github/                       pre-merge + nightly pipelines + Dependabot
+pom.xml                        root of the multi-module Maven build (modules under service/)
 package.json                   root-level bpmnlint config + git-hook installer
 ```
 
-- **Stack:** Kotlin 2.4 · Spring Boot 4 · CIB seven 2.2 (embedded) · PostgreSQL · Flyway · Gradle with
-  a `libs.versions.toml` version catalog.
-- **Generated process API:** the [`bpmn-to-code`](https://github.com/emaarco/bpmn-to-code) Gradle
-  plugin turns each `.bpmn` into a typed `*ProcessApi` object, so element ids, messages, timers and
+- **Stack:** Java 21 · Spring Boot 4 · CIB seven 2.2 (embedded) · PostgreSQL · Flyway · a multi-module
+  Maven build (root `pom.xml`, modules `service/common-architecture-tests` and `service/app`).
+- **Generated process API:** the [`bpmn-to-code`](https://github.com/emaarco/bpmn-to-code) Maven
+  plugin turns each `.bpmn` into a typed `*ProcessApi` class, so element ids, messages, timers and
   variables are compile-checked constants used by both delegates and tests.
 - **Forms:** Camunda Forms (`.form`) are deployed with the process and render in the CIB seven
   Tasklist/Cockpit for the user tasks.
@@ -82,10 +83,11 @@ package.json                   root-level bpmnlint config + git-hook installer
 
 - **Hexagonal architecture** keeps the engine and framework at the edges: the domain and use cases
   never depend on CIB seven, so business logic is testable and the engine is replaceable. The
-  `:service:common-architecture-tests` module enforces this with **ArchUnit** (bytecode: layering,
-  dependency direction, naming) and **Konsist** (source: one declaration per file, no wildcard
-  imports) — one line wires it into a service: `class ArchitectureTest : ServiceArchitectureTest(...)`.
-- **Unit tests** (JUnit 5 + MockK) cover every domain type, application service and adapter with
+  `service/common-architecture-tests` module enforces this with **ArchUnit** (bytecode: layering,
+  dependency direction, naming), with **Checkstyle** covering the two source rules (one top-level type
+  per file, no wildcard imports) — one line wires it into a service:
+  `class ArchitectureTest extends ServiceArchitectureTest`.
+- **Unit tests** (JUnit 5 + Mockito) cover every domain type, application service and adapter with
   given/when/then comments and shared `testLeasingApplication(...)` builders — controllers via
   `@WebMvcTest`, persistence via `@DataJpaTest`. JavaDelegates are covered by the process tests.
 - **Process tests** (`cibseven-bpm-assert`) drive the deployed model deterministically — timers and
@@ -100,8 +102,8 @@ package.json                   root-level bpmnlint config + git-hook installer
   the whole flow runs in the pipeline without real 14-day waits.
 - **Ops-ready out of the box:** Flyway versioned migrations with Hibernate on `validate` (ADR-0010),
   actuator health/liveness/readiness probes + Prometheus metrics (ADR-0009), and an OCI image built by
-  `./gradlew :service:app:bootBuildImage` — no Dockerfile (ADR-0011).
-- **Dependabot** keeps Gradle, the Postgres image, the BPMN tooling and GitHub Actions current.
+  `mvn -pl service/app spring-boot:build-image` — no Dockerfile (ADR-0011).
+- **Dependabot** keeps Maven, the Postgres image, the BPMN tooling and GitHub Actions current.
 
 The *why* behind each of these choices is recorded as an [Architecture Decision Record](docs/README.md).
 
@@ -113,13 +115,13 @@ docker compose -f stack/docker-compose.yml up -d
 
 # 2. run the app (CIB seven Cockpit/Tasklist at http://localhost:8080/camunda, admin/admin;
 #    Swagger UI at http://localhost:8080/swagger-ui.html)
-./gradlew :service:app:bootRun
+mvn -pl service/app spring-boot:run
 
 # 3. lint the BPMN models
 npm ci && npm run lint:bpmn
 
 # 4. drive the scenarios (build + arch + process tests first, then the REST flows)
-./gradlew build
+mvn verify
 cd bruno && npx --yes @usebruno/cli@4.0.0 run . --env local -r
 ```
 
@@ -153,7 +155,7 @@ Bruno collection lives in `bruno/06-incident-demo/`.
 ## Contributing
 
 Contributions are welcome. Please open an issue to discuss substantial changes first, keep the
-architecture tests green (`./gradlew build`), and use
+architecture tests green (`mvn verify`), and use
 [Conventional Commits](https://www.conventionalcommits.org) for commit messages and PR titles.
 
 ## License

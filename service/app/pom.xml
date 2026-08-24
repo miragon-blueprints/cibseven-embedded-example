@@ -60,13 +60,8 @@
         <dependency>
             <groupId>org.cibseven.bpm.springboot</groupId>
             <artifactId>cibseven-bpm-spring-boot-starter-webapp-4</artifactId>
-            <exclusions>
-                <!-- Mirrors the Gradle build: the web client bundle is not served by this headless service. -->
-                <exclusion>
-                    <groupId>org.cibseven.webapp</groupId>
-                    <artifactId>cibseven-webclient-web</artifactId>
-                </exclusion>
-            </exclusions>
+            <!-- Full webapp starter: the new CIB seven web client at /webapp plus the classic
+                 Camunda webapps at /camunda. -->
         </dependency>
         <dependency>
             <groupId>org.cibseven.bpm.springboot</groupId>

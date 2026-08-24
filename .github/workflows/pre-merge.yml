@@ -95,7 +95,9 @@ jobs:
           POSTGRES_USER: admin
           POSTGRES_PASSWORD: admin
         ports:
-          - 5432:5432
+          # Publish on host 5433 to match application.yaml's default JDBC port — the app is
+          # started below without a SPRING_DATASOURCE_URL override, so it uses that default.
+          - 5433:5432
         options: >-
           --health-cmd "pg_isready -U admin -d bikeleasing"
           --health-interval 5s

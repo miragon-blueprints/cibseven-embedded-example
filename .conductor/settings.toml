@@ -1,6 +1,6 @@
 # Conductor workspace settings for the CIB seven embedded bike-leasing blueprint.
 #
-# This stack binds fixed ports (Postgres 5432, backend 8080 — which also serves the embedded CIB
+# This stack binds fixed ports (Postgres 5433 on the host, backend 8080 — which also serves the embedded CIB
 # seven webapp/Cockpit and engine-rest), so only one workspace can run the app at a time — hence
 # run_mode = "nonconcurrent". portless is deliberately deferred: it only wraps a JS dev server, while
 # both of this stack's collisions are Postgres and the Spring/engine schema. See

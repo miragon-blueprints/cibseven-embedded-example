@@ -25,7 +25,7 @@ mvn -pl service/app spring-boot:run                 # backend + engine on :8080
 
 | What | Port |
 |---|---|
-| Postgres | 5432 |
+| Postgres | 5433 (host) → 5432 (container) |
 | Backend (REST + `/engine-rest`) | 8080 |
 | CIB seven Cockpit / Tasklist / webapps | 8080/camunda (admin/admin) |
 | OpenAPI spec · Swagger UI | 8080/v3/api-docs · 8080/swagger-ui.html |
@@ -62,7 +62,7 @@ docker compose -f stack/docker-compose.yml up -d
 
 # 3. run the image against it (host networking; point it at the compose Postgres)
 docker run --rm -p 8080:8080 \
-  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/bikeleasing \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5433/bikeleasing \
   -e SPRING_DATASOURCE_USERNAME=admin -e SPRING_DATASOURCE_PASSWORD=admin \
   miravelo/cibseven-embedded-example:1.0-SNAPSHOT
 ```
@@ -83,7 +83,7 @@ environment (they win over the baked defaults):
 
 | Env var | Purpose | Default |
 |---|---|---|
-| `SPRING_DATASOURCE_URL` | JDBC URL | `jdbc:postgresql://localhost:5432/bikeleasing` |
+| `SPRING_DATASOURCE_URL` | JDBC URL | `jdbc:postgresql://localhost:5433/bikeleasing` |
 | `SPRING_DATASOURCE_USERNAME` / `_PASSWORD` | DB credentials | `admin` / `admin` |
 
 > **Not production-hardened.** The image carries the example `jwtSecret` and admin/admin credentials

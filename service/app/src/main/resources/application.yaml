@@ -2,10 +2,15 @@ server:
   port: 8080
 
 spring:
+  config:
+    # The CIB seven web client reads its JWT secret from this properties file (see the file for why).
+    import:
+      - optional:classpath:cibseven-webclient.properties
   datasource:
     # Overridable via SPRING_DATASOURCE_* env vars for containerized/remote runs; the defaults target
-    # the local dev Postgres (stack/docker-compose.yml). See CONTRIBUTING.md "Run it in containers".
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/bikeleasing}
+    # the local dev Postgres (stack/docker-compose.yml), which publishes on host port 5433 so 5432 stays
+    # free for a sibling example. See CONTRIBUTING.md "Run it in containers".
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/bikeleasing}
     username: ${SPRING_DATASOURCE_USERNAME:admin}
     password: ${SPRING_DATASOURCE_PASSWORD:admin}
     driver-class-name: org.postgresql.Driver
@@ -55,7 +60,10 @@ camunda:
       - classpath*:**/*.dmn
       - classpath*:**/*.form
     webapp:
-      application-path: /camunda
+      # New CIB seven web client at /webapp (its default); the classic Camunda webapps
+      # (Cockpit/Tasklist/Admin) stay reachable at /camunda via the legacy path.
+      application-path: /webapp
+      legacy-application-path: /camunda
     database:
       type: postgres
       schema-update: true
@@ -70,3 +78,11 @@ cibseven:
       # WARNING: This is a development/example secret key.
       # DO NOT use this in production! Generate your own secure secret key.
       jwtSecret: RtURHZ7SQYfLoX902wcjlvduW2qe9g0bjMUczmffjiTjzU9phbv3mK54zHMqeGK6cqgoEBTIUE6RqwvemSqbpD40qUPXVRElvDHGhn4OAEfjeEP2ANah8GJejSA08E820mForcQHBmediqg2DzIrxnDXyf2
+    # Where the web client's own REST services are mounted, RELATIVE to the /webapp application-path
+    # (so the effective path is /webapp/services/v1, which is what the SPA calls). Must not repeat
+    # the /webapp prefix, or the endpoints end up doubled at /webapp/webapp/services/v1.
+    services:
+      basePath: services/v1
+    # The engine REST API the web client's backend talks to (this same embedded app).
+    engineRest:
+      url: ${CIBSEVEN_WEBCLIENT_ENGINE_REST_URL:http://localhost:8080}

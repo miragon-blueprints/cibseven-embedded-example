@@ -55,7 +55,7 @@ mvn -pl service/app spring-boot:run                 # backend + engine on :8080
 
 | What | Port |
 |---|---|
-| Postgres | 5432 |
+| Postgres | 5433 (host) → 5432 (container) |
 | Backend (REST + `/engine-rest`) | 8080 |
 | CIB seven Cockpit / Tasklist / webapps | 8080/camunda (admin/admin) |
 | OpenAPI spec · Swagger UI | 8080/v3/api-docs · 8080/swagger-ui.html |

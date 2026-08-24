@@ -1,6 +1,6 @@
 # Local development stack. Not intended for production use.
 services:
-  postgres:
+  postgres-bikeleasing:
     image: postgres:18.4
     container_name: bikeleasing-postgres
     ports:

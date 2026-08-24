@@ -46,8 +46,8 @@ never by sleeping a guessed duration.
   user task.
 - **Division of labour holds:** Bruno asserts the **synchronous request/response contract** (status
   codes, DTO shape) plus the eventually-consistent read model; genuinely engine-level, deterministic
-  checks (timer fast-forward, full token flow) stay in the JVM process-test layer (JGiven /
-  `@CamundaSpringProcessTest`). See ADR-0004 for the test layering.
+  checks (timer fast-forward, full token flow) stay in the JVM process-test layer
+  (`@SpringBootTest` with CIB seven's `BpmnAwareTests` assertions). See ADR-0004 for the test layering.
 - **The Bruno CLI is pinned** (`@usebruno/cli@4.0.0`): the script sandbox's capabilities (available
   globals, the `require` whitelist the helpers depend on) can change between majors, so an unpinned
   `latest` is a correctness risk, not just a supply-chain one.

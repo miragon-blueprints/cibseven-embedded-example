@@ -9,7 +9,7 @@ A headless **MiraVelo bike-leasing** blueprint: a BPMN process running on an emb
 engine, behind an enforced hexagonal architecture. There is **no frontend** — the service is driven
 over REST, and the CIB seven webapps (Cockpit / Tasklist) handle any human-in-the-loop steps.
 
-- **Backend** (`service/app`) — Kotlin / Spring Boot 4, hexagonal, CIB seven 2.2 embedded engine
+- **Backend** (`service/app`) — Java 21 / Spring Boot 4, hexagonal, CIB seven 2.2 embedded engine
   (JavaDelegates invoked by expression, **not** Zeebe workers). Package root `io.miragon.blueprint`.
 - **The contract** is `openapi/openapi.json`: springdoc generates it from the controllers, it is
   **committed and drift-gated** in CI. It is the published contract for any REST consumer — a backend
@@ -19,8 +19,9 @@ over REST, and the CIB seven webapps (Cockpit / Tasklist) handle any human-in-th
 ## Repository Map
 
 ```
+pom.xml                        root of the multi-module Maven build (modules under service/)
 service/
-  common-architecture-tests/   reusable ArchUnit + Konsist rule suite
+  common-architecture-tests/   reusable ArchUnit rule suite (src/main/java)
   app/                         the CIB seven bike-leasing service (hexagonal)
     adapter/inbound/rest        domain REST controllers + OpenAPI / problem-details config
     adapter/inbound/cibseven    JavaDelegates + listeners for the BPMN service tasks
@@ -47,14 +48,14 @@ Two commands to a running service:
 
 ```bash
 docker compose -f stack/docker-compose.yml up -d   # Postgres
-./gradlew :service:app:bootRun                      # backend + engine on :8080
+mvn -pl service/app spring-boot:run                 # backend + engine on :8080
 ```
 
 ### Ports (one source of truth — keep README, this file and `.conductor/settings.toml` in sync)
 
 | What | Port |
 |---|---|
-| Postgres | 5432 |
+| Postgres | 5433 (host) → 5432 (container) |
 | Backend (REST + `/engine-rest`) | 8080 |
 | CIB seven Cockpit / Tasklist / webapps | 8080/camunda (admin/admin) |
 | OpenAPI spec · Swagger UI | 8080/v3/api-docs · 8080/swagger-ui.html |
@@ -67,20 +68,22 @@ Under Conductor the ports are fixed and the workspace runs `nonconcurrent`
 
 | Area | Command |
 |---|---|
-| Backend (arch + unit + process + model validation + spec export) | `./gradlew build` |
-| Mutation testing (gate 80) | `./gradlew :service:app:pitest` |
-| Regenerate the typed BPMN process API (after editing a `.bpmn`) | `./gradlew generateBpmnModels` |
-| Regenerate + verify the OpenAPI contract | `./gradlew :service:app:test --tests "io.miragon.blueprint.openapi.OpenApiSpecExportTest"` then `git diff --exit-code openapi/openapi.json` |
+| Backend (arch + unit + process + model validation + spec export) | `mvn verify` |
+| Mutation testing (gate 80) | `mvn -pl service/app test-compile org.pitest:pitest-maven:mutationCoverage` |
+| Regenerate the typed BPMN process API (after editing a `.bpmn`) | `mvn -pl service/app generate-sources` |
+| Regenerate + verify the OpenAPI contract | `mvn -pl service/app test -Dtest=OpenApiSpecExportTest` then `git diff --exit-code openapi/openapi.json` |
 | API scenarios (running stack) | `cd bruno && npx --yes @usebruno/cli@4.0.0 run . --env local -r` |
 | BPMN lint | `npm run lint:bpmn` |
-| Backend OCI image | `./gradlew :service:app:bootBuildImage` (image `miravelo/cibseven-embedded-example`) — [ADR-0011](docs/adr/0011-build-and-deployment-approach.md), CONTRIBUTING "Run it in containers" |
+| Backend OCI image | `mvn -pl service/app spring-boot:build-image` (image `miravelo/cibseven-embedded-example`) — [ADR-0011](docs/adr/0011-build-and-deployment-approach.md), CONTRIBUTING "Run it in containers" |
 
 ## Architecture — the rules are machine-enforced
 
-The backend's hexagonal rules live in `service/common-architecture-tests` (ArchUnit + Konsist) and
+The backend's hexagonal rules live in `service/common-architecture-tests` (ArchUnit) and
 **fail the build** (see [ADR-0007](docs/adr/0007-two-architecture-test-tools-archunit-and-konsist.md)).
-Read `HexagonalArchitectureTest.kt` and `NamingConventionArchitectureTest.kt` before writing code. The
-hard rules:
+Read `HexagonalArchitectureTest.java` and `NamingConventionArchitectureTest.java` before writing code.
+The two source-shape rules ArchUnit can't see — one top-level type per file, no wildcard imports — are
+enforced by the **maven-checkstyle-plugin** (`config/checkstyle/checkstyle.xml`), which also fails the
+build. The hard rules:
 
 - **One inbound port per controller.** `onlyFulfilOneUseCase` counts constructor params in
   `application.port.inbound` and fails at >1. An inbox listing + a completion are two controllers.
@@ -88,8 +91,8 @@ hard rules:
   root package, so `io.miragon.blueprint.config` would fail. Cross-cutting `@Configuration` (CORS,
   OpenAPI, error handling) goes in `adapter.inbound.rest` — the `Configuration` suffix is whitelisted
   there.
-- **`adapter/process` is generated.** Never hand-edit `*ProcessApi.kt`; edit the `.bpmn` and re-run
-  `generateBpmnModels`.
+- **`adapter/process` is generated.** Never hand-edit `*ProcessApi.java`; edit the `.bpmn` and re-run
+  `mvn -pl service/app generate-sources`.
 - **Suffixes:** inbound port `UseCase|Query`; outbound `Port|Repository|Process`; service
   `Service|Configuration`; `adapter.inbound.rest` `Controller|Dto|Input|Mapper|Configuration`;
   `adapter.inbound.cibseven` `Delegate|Worker|Listener`; `adapter.outbound`
@@ -109,22 +112,22 @@ TDD. Match the test style to the layer:
 | Layer | Test style |
 |---|---|
 | domain | plain unit tests |
-| application service | mockk unit tests (mock the ports) |
-| `adapter.inbound.rest` | `@WebMvcTest` + MockkBean |
+| application service | Mockito unit tests (mock the ports) |
+| `adapter.inbound.rest` | `@WebMvcTest` + `@MockitoBean` |
 | `adapter.outbound.db` | `@DataJpaTest` |
-| process end-to-end | CIB seven process tests (JGiven) |
+| process end-to-end | CIB seven process tests |
 
-**Mutation testing gates PRs at 80** (`:service:app:pitest`): a test that executes without asserting
+**Mutation testing gates PRs at 80** (`pitest-maven`): a test that executes without asserting
 will fail CI. Coverage says a line ran; mutation says a test would have noticed. The PR gate runs
 **diff-scoped** (only the classes the PR changed, still blocking); the **full-module** gate-80 sweep
 runs nightly. See [ADR-0004](docs/adr/0004-mutation-testing-as-a-blocking-pr-gate.md).
 
 ## Verify After Each Task (targeted, not a full build)
 
-- Backend service/controller: `./gradlew :service:app:test --tests "*<Name>Test"`
-- Architecture only: `./gradlew :service:app:test --tests "io.miragon.blueprint.architecture.*"`
+- Backend service/controller: `mvn -pl service/app test -Dtest='*<Name>Test'`
+- Architecture only: `mvn -pl service/app test -Dtest=ArchitectureTest`
 - Contract changed: regenerate the spec, then `git diff --exit-code openapi/openapi.json`
-- Process changed: `./gradlew generateBpmnModels` then the `process.*` JGiven tests
+- Process changed: `mvn -pl service/app generate-sources` then the `process.*` tests
 
 ## Working with GitHub
 

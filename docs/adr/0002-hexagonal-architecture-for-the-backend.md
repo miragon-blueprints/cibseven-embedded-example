@@ -16,7 +16,7 @@ quietly erode it.
 
 We structure `service/app` as a **hexagon (ports & adapters)** under `io.miragon.blueprint`:
 
-- `domain/` — pure Kotlin value objects and aggregates; no framework imports.
+- `domain/` — pure Java records and aggregates; no framework imports.
 - `application/port/inbound` — one **`*UseCase`** (state-changing) or **`*Query`** (read) interface per
   operation. `application/port/outbound` — **`*Repository` / `*Port` / `*Process`** interfaces.
 - `application/service` — one `*Service` implementing exactly one inbound port; it may not call another
@@ -26,9 +26,10 @@ We structure `service/app` as a **hexagon (ports & adapters)** under `io.miragon
 - `adapter/process` — the **generated** `*ProcessApi` (bpmn-to-code) plus engine config; a technical
   seam that fits neither side of the split.
 
-These rules are **enforced by the reusable ArchUnit + Konsist suite** in
-`service/common-architecture-tests`, wired into every module's tests so `./gradlew build` fails on a
-violation:
+These rules are **enforced by the reusable ArchUnit suite** in `service/common-architecture-tests` —
+plus a small **Checkstyle** rule set for the two source-level guidelines ArchUnit's bytecode view
+can't see (see [ADR-0007](0007-two-architecture-test-tools-archunit-and-konsist.md)) — wired into
+every module's tests so `mvn verify` fails on a violation:
 
 - `HexagonalArchitectureTest` — the layered-dependency graph (domain depends on nothing; ports are
   interfaces; an in-adapter offers exactly one use-case; out-adapters never touch inbound ports).
@@ -36,7 +37,7 @@ violation:
   `Listener`, `PersistenceAdapter`, `UseCase`, `Query`, …).
 - There is deliberately **no `config` package**; Spring configuration lives beside the adapter it
   configures (`OpenApiConfiguration`, `GlobalExceptionConfiguration`, `HistoryCleanupConfiguration`).
-- The generated `adapter/process` package is **explicitly excluded** from both suites — it is machine-
+- The generated `adapter/process` package is **explicitly excluded** from these checks — it is machine-
   written and does not follow the hand-written conventions.
 
 ## Consequences

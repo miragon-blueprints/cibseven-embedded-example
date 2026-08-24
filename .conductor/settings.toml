@@ -1,6 +1,6 @@
 # Conductor workspace settings for the CIB seven embedded bike-leasing blueprint.
 #
-# This stack binds fixed ports (Postgres 5432, backend 8080 — which also serves the embedded CIB
+# This stack binds fixed ports (Postgres 5433 on the host, backend 8080 — which also serves the embedded CIB
 # seven webapp/Cockpit and engine-rest), so only one workspace can run the app at a time — hence
 # run_mode = "nonconcurrent". portless is deliberately deferred: it only wraps a JS dev server, while
 # both of this stack's collisions are Postgres and the Spring/engine schema. See
@@ -29,12 +29,12 @@ icon = "database"
 
 # The Spring Boot application (embedded CIB seven engine).
 [scripts.run.backend]
-command = "./gradlew :service:app:bootRun"
+command = "mvn -pl service/app spring-boot:run"
 icon = "play"
 
-# Full verification: arch + unit + process + model-validation + OpenAPI spec export.
+# Full verification: arch + unit + process + model-validation + OpenAPI spec export + checkstyle.
 [scripts.run.test]
-command = "./gradlew build"
+command = "mvn verify"
 icon = "check"
 
 # Bruno API smoke tests against a running local stack.

@@ -31,3 +31,9 @@ camunda:
       enabled: false
     webapp:
       enabled: false
+
+# The new CIB seven web client is a runtime concern; keep it out of the test context (like the
+# classic webapp above) so tests stay fast and the OpenAPI contract is unaffected.
+cibseven:
+  webclient:
+    enabled: false

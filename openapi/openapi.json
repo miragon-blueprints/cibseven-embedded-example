@@ -90,8 +90,7 @@
         } ],
         "responses" : {
           "200" : {
-            "description" : "OK",
-            "content" : { }
+            "description" : "OK"
           }
         }
       }
@@ -110,8 +109,7 @@
         } ],
         "responses" : {
           "200" : {
-            "description" : "OK",
-            "content" : { }
+            "description" : "OK"
           }
         }
       }
@@ -130,8 +128,7 @@
         } ],
         "responses" : {
           "200" : {
-            "description" : "OK",
-            "content" : { }
+            "description" : "OK"
           }
         }
       }
@@ -160,8 +157,7 @@
         },
         "responses" : {
           "200" : {
-            "description" : "OK",
-            "content" : { }
+            "description" : "OK"
           }
         }
       }
@@ -244,13 +240,12 @@
             "type" : "boolean"
           },
           "bikeId" : {
-            "type" : [ "string", "null" ]
+            "type" : "string"
           },
           "bikeModel" : {
-            "type" : [ "string", "null" ]
+            "type" : "string"
           }
-        },
-        "required" : [ "alternativeFound" ]
+        }
       },
       "BikeDto" : {
         "type" : "object",
@@ -264,8 +259,7 @@
           "available" : {
             "type" : "boolean"
           }
-        },
-        "required" : [ "available", "bikeId", "model" ]
+        }
       },
       "LeasingApplicationCreatedDto" : {
         "type" : "object",
@@ -273,8 +267,7 @@
           "applicationId" : {
             "type" : "string"
           }
-        },
-        "required" : [ "applicationId" ]
+        }
       },
       "LeasingApplicationDto" : {
         "type" : "object",
@@ -300,23 +293,22 @@
             "type" : "string"
           },
           "bikeModel" : {
-            "type" : [ "string", "null" ]
+            "type" : "string"
           },
           "status" : {
             "type" : "string"
           },
           "orderId" : {
-            "type" : [ "string", "null" ]
+            "type" : "string"
           },
           "contractId" : {
-            "type" : [ "string", "null" ]
+            "type" : "string"
           },
           "createdAt" : {
             "type" : "string",
             "format" : "date-time"
           }
-        },
-        "required" : [ "age", "applicationId", "bikeId", "createdAt", "customerName", "email", "monthlyNetIncome", "status" ]
+        }
       },
       "LeasingApplicationPageDto" : {
         "type" : "object",
@@ -343,8 +335,7 @@
             "type" : "integer",
             "format" : "int32"
           }
-        },
-        "required" : [ "items", "page", "size", "totalElements", "totalPages" ]
+        }
       },
       "LeasingApplicationSummaryDto" : {
         "type" : "object",
@@ -359,7 +350,7 @@
             "type" : "string"
           },
           "bikeModel" : {
-            "type" : [ "string", "null" ]
+            "type" : "string"
           },
           "status" : {
             "type" : "string"
@@ -368,8 +359,7 @@
             "type" : "string",
             "format" : "date-time"
           }
-        },
-        "required" : [ "applicationId", "bikeId", "createdAt", "customerName", "status" ]
+        }
       },
       "LeasingRequestInput" : {
         "type" : "object",
@@ -394,8 +384,7 @@
           "bikeModel" : {
             "type" : "string"
           }
-        },
-        "required" : [ "age", "bikeId", "bikeModel", "customerName", "email", "monthlyNetIncome" ]
+        }
       },
       "PendingClarificationDto" : {
         "type" : "object",
@@ -410,14 +399,13 @@
             "type" : "string"
           },
           "requestedBikeModel" : {
-            "type" : [ "string", "null" ]
+            "type" : "string"
           },
           "waitingSince" : {
             "type" : "string",
             "format" : "date-time"
           }
-        },
-        "required" : [ "applicationId", "customerName", "requestedBikeId", "waitingSince" ]
+        }
       }
     }
   }

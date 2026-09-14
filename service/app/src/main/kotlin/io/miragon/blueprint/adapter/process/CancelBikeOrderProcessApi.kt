@@ -122,7 +122,7 @@ object CancelBikeOrderProcessApi {
   }
 
   /**
-   * Per-element graph metadata (previousElements / followingElements / parentId / boundary attachments).
+   * Per-element graph metadata (elementType / previousElements / followingElements / parentId / boundary attachments).
    * Intended for tooling and tests, not worker runtime code.
    */
   object Relations {
@@ -133,6 +133,7 @@ object CancelBikeOrderProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "END_EVENT",
         )
 
     val GATEWAY_CANCELLATION_POSSIBLE: BpmnRelations = BpmnRelations(
@@ -142,6 +143,7 @@ object CancelBikeOrderProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "EXCLUSIVE_GATEWAY",
         )
 
     val GATEWAY_JOIN: BpmnRelations = BpmnRelations(
@@ -150,6 +152,7 @@ object CancelBikeOrderProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "EXCLUSIVE_GATEWAY",
         )
 
     val SERVICE_TASK_BOOK_COSTS: BpmnRelations = BpmnRelations(
@@ -159,6 +162,7 @@ object CancelBikeOrderProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "SERVICE_TASK",
         )
 
     val SERVICE_TASK_REQUEST_CANCELLATION: BpmnRelations = BpmnRelations(
@@ -168,6 +172,7 @@ object CancelBikeOrderProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "SERVICE_TASK",
         )
 
     val START_EVENT_CANCELLATION_REQUIRED: BpmnRelations = BpmnRelations(
@@ -177,6 +182,7 @@ object CancelBikeOrderProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "START_EVENT",
         )
 
     val USER_TASK_CLARIFY_RETURN: BpmnRelations = BpmnRelations(
@@ -186,6 +192,7 @@ object CancelBikeOrderProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "USER_TASK",
         )
   }
 }

@@ -9,6 +9,6 @@
   },
   "devDependencies": {
     "@miragon/bpmnlint-plugin-rules": "0.10.0",
-    "bpmnlint": "11.13.0"
+    "bpmnlint": "11.14.0"
   }
 }

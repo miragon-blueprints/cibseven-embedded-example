@@ -10,6 +10,7 @@ import io.miragon.bpmn.runtime.BpmnFlow
 import io.miragon.bpmn.runtime.BpmnRelations
 import io.miragon.bpmn.runtime.BpmnTimer
 import io.miragon.bpmn.runtime.ElementId
+import io.miragon.bpmn.runtime.InputOutputMapping
 import io.miragon.bpmn.runtime.MessageName
 import io.miragon.bpmn.runtime.ProcessId
 import io.miragon.bpmn.runtime.VariableName
@@ -127,8 +128,21 @@ object BikeLeasingProcessProcessApi {
     val USER_TASK_CLARIFY_ALTERNATIVE: ElementId = ElementId("userTask_clarifyAlternative")
   }
 
+  /**
+   * Call activities grouped by element. Each nested object exposes the called `PROCESS_ID` plus the variable mappings passed into (`Inputs`) and returned from (`Outputs`) the called process.
+   */
   object CallActivities {
-    val CALL_ACTIVITY_CANCEL_BIKE_ORDER: ProcessId = ProcessId("cancelBikeOrder")
+    object CallActivityCancelBikeOrder {
+      val PROCESS_ID: ProcessId = ProcessId("cancelBikeOrder")
+
+      object Inputs {
+        val BIKE_ID: InputOutputMapping =
+            InputOutputMapping(target = "bikeId", source = "bikeId")
+
+        val ORDER_ID: InputOutputMapping =
+            InputOutputMapping(target = "orderId", source = "orderId")
+      }
+    }
   }
 
   /**
@@ -467,7 +481,7 @@ object BikeLeasingProcessProcessApi {
   }
 
   /**
-   * Per-element graph metadata (previousElements / followingElements / parentId / boundary attachments).
+   * Per-element graph metadata (elementType / previousElements / followingElements / parentId / boundary attachments).
    * Intended for tooling and tests, not worker runtime code.
    */
   object Relations {
@@ -478,6 +492,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "BUSINESS_RULE_TASK",
         )
 
     val CALL_ACTIVITY_CANCEL_BIKE_ORDER: BpmnRelations = BpmnRelations(
@@ -487,6 +502,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "CALL_ACTIVITY",
         )
 
     val END_EVENT_APPLICATION_CANCELLED: BpmnRelations = BpmnRelations(
@@ -496,6 +512,7 @@ object BikeLeasingProcessProcessApi {
           parentId = "subProcess_applicationWithdrawn",
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "END_EVENT",
         )
 
     val END_EVENT_APPLICATION_REJECTED: BpmnRelations = BpmnRelations(
@@ -505,6 +522,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "END_EVENT",
         )
 
     val END_EVENT_CONTRACT_CANCELLED: BpmnRelations = BpmnRelations(
@@ -514,6 +532,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "END_EVENT",
         )
 
     val END_EVENT_CONTRACT_VALID: BpmnRelations = BpmnRelations(
@@ -523,6 +542,7 @@ object BikeLeasingProcessProcessApi {
           parentId = "subProcess_concludeContract",
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "END_EVENT",
         )
 
     val END_EVENT_LEASING_ACTIVE: BpmnRelations = BpmnRelations(
@@ -532,6 +552,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "MESSAGE_END_EVENT",
         )
 
     val END_EVENT_NOT_SIGNED: BpmnRelations = BpmnRelations(
@@ -541,6 +562,7 @@ object BikeLeasingProcessProcessApi {
           parentId = "subProcess_concludeContract",
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "ESCALATION_END_EVENT",
         )
 
     val END_EVENT_PROSPECT_REMINDED: BpmnRelations = BpmnRelations(
@@ -550,6 +572,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "END_EVENT",
         )
 
     val EVENT_APPLICATION_INVALID: BpmnRelations = BpmnRelations(
@@ -559,6 +582,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = "serviceTask_validateApplication",
           attachedElements = emptyList(),
+          elementType = "ERROR_BOUNDARY_EVENT",
         )
 
     val EVENT_COMPENSATE_CONTRACT: BpmnRelations = BpmnRelations(
@@ -568,6 +592,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = "subProcess_concludeContract",
           attachedElements = emptyList(),
+          elementType = "COMPENSATION_BOUNDARY_EVENT",
         )
 
     val EVENT_COMPENSATE_INSURANCE: BpmnRelations = BpmnRelations(
@@ -577,6 +602,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = "serviceTask_issueInsurancePolicy",
           attachedElements = emptyList(),
+          elementType = "COMPENSATION_BOUNDARY_EVENT",
         )
 
     val EVENT_COMPENSATE_ORDER: BpmnRelations = BpmnRelations(
@@ -586,6 +612,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = "serviceTask_orderBike",
           attachedElements = emptyList(),
+          elementType = "COMPENSATION_BOUNDARY_EVENT",
         )
 
     val EVENT_CONTRACT_NOT_SIGNED: BpmnRelations = BpmnRelations(
@@ -595,6 +622,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = "subProcess_concludeContract",
           attachedElements = emptyList(),
+          elementType = "ESCALATION_BOUNDARY_EVENT",
         )
 
     val EVENT_CONTRACT_SIGNED: BpmnRelations = BpmnRelations(
@@ -604,6 +632,7 @@ object BikeLeasingProcessProcessApi {
           parentId = "subProcess_concludeContract",
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "MESSAGE_INTERMEDIATE_CATCH_EVENT",
         )
 
     val EVENT_HANDOVER_REPORTED: BpmnRelations = BpmnRelations(
@@ -613,6 +642,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "MESSAGE_INTERMEDIATE_CATCH_EVENT",
         )
 
     val EVENT_REVERSE_APPLICATION: BpmnRelations = BpmnRelations(
@@ -622,6 +652,7 @@ object BikeLeasingProcessProcessApi {
           parentId = "subProcess_applicationWithdrawn",
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "COMPENSATION_INTERMEDIATE_THROW_EVENT",
         )
 
     val EVENT_SIGNATURE_DEADLINE: BpmnRelations = BpmnRelations(
@@ -631,6 +662,7 @@ object BikeLeasingProcessProcessApi {
           parentId = "subProcess_concludeContract",
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "TIMER_INTERMEDIATE_CATCH_EVENT",
         )
 
     val EVENT_SIGNATURE_REMINDER: BpmnRelations = BpmnRelations(
@@ -640,6 +672,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = "subProcess_concludeContract",
           attachedElements = emptyList(),
+          elementType = "TIMER_BOUNDARY_EVENT",
         )
 
     val EVENT_TRIGGER_REVERSAL: BpmnRelations = BpmnRelations(
@@ -649,6 +682,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "COMPENSATION_INTERMEDIATE_THROW_EVENT",
         )
 
     val EVENT_WITHDRAWAL_PERIOD_ELAPSED: BpmnRelations = BpmnRelations(
@@ -658,6 +692,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "TIMER_INTERMEDIATE_CATCH_EVENT",
         )
 
     val GATEWAY_ALTERNATIVE_FOUND: BpmnRelations = BpmnRelations(
@@ -667,6 +702,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "EXCLUSIVE_GATEWAY",
         )
 
     val GATEWAY_AWAIT_SIGNATURE: BpmnRelations = BpmnRelations(
@@ -675,6 +711,7 @@ object BikeLeasingProcessProcessApi {
           parentId = "subProcess_concludeContract",
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "EVENT_BASED_GATEWAY",
         )
 
     val GATEWAY_BIKE_AVAILABLE: BpmnRelations = BpmnRelations(
@@ -684,6 +721,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "EXCLUSIVE_GATEWAY",
         )
 
     val GATEWAY_BIKE_SOURCE_JOIN: BpmnRelations = BpmnRelations(
@@ -692,6 +730,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "EXCLUSIVE_GATEWAY",
         )
 
     val GATEWAY_FORK: BpmnRelations = BpmnRelations(
@@ -700,6 +739,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "PARALLEL_GATEWAY",
         )
 
     val GATEWAY_IS_SOLVENT: BpmnRelations = BpmnRelations(
@@ -709,6 +749,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "EXCLUSIVE_GATEWAY",
         )
 
     val GATEWAY_JOIN: BpmnRelations = BpmnRelations(
@@ -717,6 +758,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "PARALLEL_GATEWAY",
         )
 
     val GATEWAY_REJECTION_JOIN: BpmnRelations = BpmnRelations(
@@ -726,6 +768,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "EXCLUSIVE_GATEWAY",
         )
 
     val SERVICE_TASK_CANCEL_CONTRACT: BpmnRelations = BpmnRelations(
@@ -735,6 +778,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "SERVICE_TASK",
         )
 
     val SERVICE_TASK_CANCEL_POLICY: BpmnRelations = BpmnRelations(
@@ -744,6 +788,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "SERVICE_TASK",
         )
 
     val SERVICE_TASK_ISSUE_INSURANCE_POLICY: BpmnRelations = BpmnRelations(
@@ -753,6 +798,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = listOf("event_compensateInsurance"),
+          elementType = "SERVICE_TASK",
         )
 
     val SERVICE_TASK_ORDER_BIKE: BpmnRelations = BpmnRelations(
@@ -762,6 +808,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = listOf("event_compensateOrder"),
+          elementType = "SERVICE_TASK",
         )
 
     val SERVICE_TASK_SEND_CANCELLATION_CONFIRMATION: BpmnRelations = BpmnRelations(
@@ -771,6 +818,7 @@ object BikeLeasingProcessProcessApi {
           parentId = "subProcess_applicationWithdrawn",
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "SERVICE_TASK",
         )
 
     val SERVICE_TASK_SEND_CONTRACT: BpmnRelations = BpmnRelations(
@@ -780,6 +828,7 @@ object BikeLeasingProcessProcessApi {
           parentId = "subProcess_concludeContract",
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "SERVICE_TASK",
         )
 
     val SERVICE_TASK_SEND_REJECTION: BpmnRelations = BpmnRelations(
@@ -789,6 +838,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "SERVICE_TASK",
         )
 
     val SERVICE_TASK_SEND_REMINDER_MAIL: BpmnRelations = BpmnRelations(
@@ -798,6 +848,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "SERVICE_TASK",
         )
 
     val SERVICE_TASK_VALIDATE_APPLICATION: BpmnRelations = BpmnRelations(
@@ -807,6 +858,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = listOf("event_applicationInvalid"),
+          elementType = "SERVICE_TASK",
         )
 
     val START_EVENT_APPLICATION_WITHDRAWN: BpmnRelations = BpmnRelations(
@@ -816,6 +868,7 @@ object BikeLeasingProcessProcessApi {
           parentId = "subProcess_applicationWithdrawn",
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "MESSAGE_START_EVENT",
         )
 
     val START_EVENT_CUSTOMER_ELIGIBLE: BpmnRelations = BpmnRelations(
@@ -825,6 +878,7 @@ object BikeLeasingProcessProcessApi {
           parentId = "subProcess_concludeContract",
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "START_EVENT",
         )
 
     val START_EVENT_LEASING_REQUEST_RECEIVED: BpmnRelations = BpmnRelations(
@@ -834,6 +888,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "MESSAGE_START_EVENT",
         )
 
     val SUB_PROCESS_APPLICATION_WITHDRAWN: BpmnRelations = BpmnRelations(
@@ -843,6 +898,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "EVENT_SUB_PROCESS",
         )
 
     val SUB_PROCESS_CONCLUDE_CONTRACT: BpmnRelations = BpmnRelations(
@@ -852,6 +908,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = listOf("event_compensateContract", "event_contractNotSigned", "event_signatureReminder"),
+          elementType = "SUB_PROCESS",
         )
 
     val USER_TASK_CLARIFY_ALTERNATIVE: BpmnRelations = BpmnRelations(
@@ -861,6 +918,7 @@ object BikeLeasingProcessProcessApi {
           parentId = null,
           attachedToRef = null,
           attachedElements = emptyList(),
+          elementType = "USER_TASK",
         )
   }
 }

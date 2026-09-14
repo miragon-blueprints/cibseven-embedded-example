@@ -18,17 +18,15 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: maven
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
-
-      - name: Run PIT mutation testing
-        run: ./gradlew :service:app:pitest --no-daemon
+      - name: Run PIT mutation testing (full module)
+        run: mvn -B -ntp -pl service/app -am test-compile org.pitest:pitest-maven:mutationCoverage
 
       - name: Upload mutation report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: pitest-report
-          path: service/app/build/reports/pitest
+          path: service/app/target/pit-reports
           if-no-files-found: warn

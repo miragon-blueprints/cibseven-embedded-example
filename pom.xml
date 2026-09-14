@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.0</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>io.miragon.blueprint</groupId>
+    <artifactId>cibseven-embedded-example</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>cibseven-embedded-example</name>
+    <description>Headless MiraVelo bike-leasing blueprint on an embedded CIB seven engine</description>
+
+    <modules>
+        <module>service/common-architecture-tests</module>
+        <module>service/app</module>
+    </modules>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Third-party versions not managed by the Spring Boot BOM -->
+        <cibseven.version>2.2.0</cibseven.version>
+        <cibseven-jgiven.version>2.1.0</cibseven-jgiven.version>
+        <springdoc.version>3.1.0</springdoc.version>
+        <bpmn-to-code.version>5.2.0</bpmn-to-code.version>
+        <archunit.version>1.4.2</archunit.version>
+        <postgresql.version>42.7.12</postgresql.version>
+        <h2.version>2.4.240</h2.version>
+
+        <!-- Build plugins -->
+        <checkstyle.version>10.21.1</checkstyle.version>
+        <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
+        <pitest-maven.version>1.19.0</pitest-maven.version>
+        <pitest-junit5-plugin.version>1.2.2</pitest-junit5-plugin.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- CIB seven (Camunda 7 fork) — Spring Boot 4 starters -->
+            <dependency>
+                <groupId>org.cibseven.bpm.springboot</groupId>
+                <artifactId>cibseven-bpm-spring-boot-starter-webapp-4</artifactId>
+                <version>${cibseven.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.cibseven.bpm.springboot</groupId>
+                <artifactId>cibseven-bpm-spring-boot-starter-rest-4</artifactId>
+                <version>${cibseven.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.cibseven.bpm</groupId>
+                <artifactId>cibseven-bpm-assert</artifactId>
+                <version>${cibseven.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.cibseven.bpm</groupId>
+                <artifactId>cibseven-bpm-junit5</artifactId>
+                <version>${cibseven.version}</version>
+            </dependency>
+
+            <!-- OpenAPI — springdoc (3.x = the Spring Boot 4 line) -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+
+            <!-- bpmn-to-code — runtime consumed by the generated process API; testing = model validation -->
+            <dependency>
+                <groupId>io.miragon</groupId>
+                <artifactId>bpmn-to-code-runtime</artifactId>
+                <version>${bpmn-to-code.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.miragon</groupId>
+                <artifactId>bpmn-to-code-testing</artifactId>
+                <version>${bpmn-to-code.version}</version>
+            </dependency>
+
+            <!-- Architecture tests -->
+            <dependency>
+                <groupId>com.tngtech.archunit</groupId>
+                <artifactId>archunit</artifactId>
+                <version>${archunit.version}</version>
+            </dependency>
+
+            <!-- Persistence drivers (pinned; overrides the BOM-managed versions) -->
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>${h2.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- bpmn-to-code: generates the typed process API (Java) from the *.bpmn models -->
+                <plugin>
+                    <groupId>io.miragon</groupId>
+                    <artifactId>bpmn-to-code-maven</artifactId>
+                    <version>${bpmn-to-code.version}</version>
+                </plugin>
+
+                <!-- Checkstyle: preserves the two source-structure guidelines Konsist used to enforce
+                     (no wildcard imports, one top-level type per file). See docs/adr/0007. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>${maven-checkstyle-plugin.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>${checkstyle.version}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+
+                <!-- PIT mutation testing (gate 80). See docs/adr/0004. -->
+                <plugin>
+                    <groupId>org.pitest</groupId>
+                    <artifactId>pitest-maven</artifactId>
+                    <version>${pitest-maven.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.pitest</groupId>
+                            <artifactId>pitest-junit5-plugin</artifactId>
+                            <version>${pitest-junit5-plugin.version}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

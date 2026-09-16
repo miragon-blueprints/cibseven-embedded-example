@@ -11,6 +11,12 @@ A ready-to-fork **starting point** for automating a business process on
 Spring Boot and Kotlin — one complete, runnable, production-shaped BPMN service you can clone and make
 your own.
 
+> [!TIP]
+> **Prefer Java + Maven?** A Java 21 + Maven version of this blueprint — the stack most enterprise
+> teams and trainings use — is published at the [`java-maven`](../../tree/java-maven) tag. It is
+> regenerated from this Kotlin `main`, not a separate fork; see
+> [`docs/variants/java-maven.md`](docs/variants/java-maven.md).
+
 ## The scenario
 
 Meet **MiraVelo** — a (fictional) lifestyle bike brand for the quarter-life-crisis crowd: gravel bikes

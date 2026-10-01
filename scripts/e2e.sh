@@ -98,6 +98,9 @@ webapps() {
   check "Cockpit app is served"                 status_is 200 -c "${cookies}" "${base_url}/camunda/app/cockpit/default/"
   xsrf="$(awk '$6 == "XSRF-TOKEN" { print $7 }' "${cookies}")"
   check "webapp static assets are served"       status_is 200 "${base_url}/camunda/lib/deps.js"
+  check "Cockpit plugin script is served"       status_is 200 "${base_url}/camunda/api/cockpit/plugin/cockpitPlugins/static/app/plugin.js"
+  check "Tasklist plugin script is served"      status_is 200 "${base_url}/camunda/api/tasklist/plugin/tasklistPlugins/static/app/plugin.js"
+  check "Admin plugin script is served"         status_is 200 "${base_url}/camunda/api/admin/plugin/adminPlugins/static/app/plugin.js"
   check "admin can log in to Cockpit"           json_matches '.userId == "admin"' "${base_url}/camunda/api/admin/auth/user/default/login/cockpit" -b "${cookies}" -c "${cookies}" -H "X-XSRF-TOKEN: ${xsrf}" -d 'username=admin&password=admin'
   check "Cockpit plugin API lists definitions"  json_matches '[.[].key] | index("bikeLeasingProcess") != null' "${base_url}/camunda/api/cockpit/plugin/base/default/process-definition/statistics?firstResult=0&maxResults=50" -b "${cookies}"
   check "Tasklist engine API answers"           json_matches '.count >= 0' "${base_url}/camunda/api/engine/engine/default/task/count" -b "${cookies}"

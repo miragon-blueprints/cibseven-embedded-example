@@ -32,6 +32,16 @@ if (nativeBuild) {
             buildArgs.addAll("--exclude-config", ".*kotlin-compiler-embeddable.*", "META-INF/native-image/.*")
         }
     }
+    // Cockpit, Tasklist and Admin load their plugin scripts through the servlet context, which Tomcat
+    // feeds from META-INF/resources of the webjar. A native image has no jars to mount, so the assets
+    // are laid out where the webapp's classpath fallback looks for them: plugin/<app>/app/….
+    tasks.processResources {
+        from(provider { configurations.runtimeClasspath.get().filter { it.name.startsWith("cibseven-webapp-webjar") }.map(::zipTree) }) {
+            include("META-INF/resources/plugin/**")
+            eachFile { path = path.removePrefix("META-INF/resources/") }
+            includeEmptyDirs = false
+        }
+    }
     tasks.register<Test>("aotTest") {
         group = "verification"
         description = "Runs the native-tagged tests on the JVM against the AOT-generated test contexts."

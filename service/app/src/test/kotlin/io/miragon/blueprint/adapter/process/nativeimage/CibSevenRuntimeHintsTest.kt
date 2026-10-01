@@ -100,6 +100,8 @@ class CibSevenRuntimeHintsTest {
             "META-INF/services/org.cibseven.bpm.cockpit.plugin.spi.CockpitPlugin",
             "META-INF/services/javax.script.ScriptEngineFactory",
             "META-INF/services/org.camunda.feel.valuemapper.CustomValueMapper",
+            "plugin/cockpit/app/plugin.js",
+            "plugin/tasklist/app/plugin.css",
         ).forEach {
             assertThat(resource().forResource(it)).`as`(it).accepts(hints)
         }

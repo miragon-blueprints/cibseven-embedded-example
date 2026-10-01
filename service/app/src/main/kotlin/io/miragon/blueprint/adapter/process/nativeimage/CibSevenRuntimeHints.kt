@@ -12,7 +12,8 @@ import org.springframework.aot.hint.TypeReference
  * plugins are instantiated by class name, and DMN results and object variables travel through Java
  * serialization. Instead of chasing each call site, every CIB seven class outside the reflection-free
  * model API is opened for reflection and serialization, together with the engine's non-class
- * resources (mapper XML, SQL schema scripts, XSDs, plugin descriptors).
+ * resources (mapper XML, SQL schema scripts, XSDs, plugin descriptors) and the webapp plugin assets
+ * the native build lays out under `plugin/`.
  */
 class CibSevenRuntimeHints : RuntimeHintsRegistrar {
 
@@ -73,6 +74,7 @@ class CibSevenRuntimeHints : RuntimeHintsRegistrar {
                 "META-INF/services/org.cibseven.*",
                 "META-INF/services/javax.script.ScriptEngineFactory",
                 "META-INF/services/org.camunda.feel.*",
+                "plugin/*/app/*",
             )
     }
 }

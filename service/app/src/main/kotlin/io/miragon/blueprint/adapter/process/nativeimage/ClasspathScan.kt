@@ -90,6 +90,6 @@ class ClasspathScan(classLoader: ClassLoader?) {
     private companion object {
         const val CLASS_FILE = ".class"
 
-        val DESCRIPTORS = setOf("package-info.class", "module-info.class")
+        private val DESCRIPTORS = setOf("package-info.class", "module-info.class")
     }
 }

@@ -11,6 +11,7 @@ import org.cibseven.bpm.model.bpmn.impl.BpmnModelInstanceImpl
 import org.junit.jupiter.api.Test
 import org.springframework.aot.hint.MemberCategory
 import org.springframework.aot.hint.RuntimeHints
+import org.springframework.aot.hint.TypeReference
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates.reflection
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates.resource
 import java.security.SecureRandom
@@ -30,6 +31,14 @@ class CibSevenRuntimeHintsTest {
             .accepts(hints)
         assertThat(reflection().onType(SecureRandom::class.java).withMemberCategory(MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS))
             .accepts(hints)
+        // and: so are the FEEL script engines the JDK's script engine manager loads as services
+        listOf(
+            "org.camunda.feel.impl.script.FeelScriptEngineFactory",
+            "org.camunda.feel.impl.script.FeelUnaryTestsScriptEngineFactory",
+        ).forEach {
+            assertThat(reflection().onType(TypeReference.of(it)).withMemberCategory(MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS))
+                .`as`(it).accepts(hints)
+        }
     }
 
     @Test
@@ -90,10 +99,11 @@ class CibSevenRuntimeHintsTest {
             "org/cibseven/bpm/cockpit/plugin/base/queries/processDefinition.xml",
             "META-INF/services/org.cibseven.bpm.cockpit.plugin.spi.CockpitPlugin",
             "META-INF/services/javax.script.ScriptEngineFactory",
+            "META-INF/services/org.camunda.feel.valuemapper.CustomValueMapper",
         ).forEach {
             assertThat(resource().forResource(it)).`as`(it).accepts(hints)
         }
-        assertThat(resource().forBundle(CibSevenRuntimeHints.CRON_MESSAGES_BUNDLE)).accepts(hints)
+        assertThat(resource().forBundle("camundajar.impl.com.cronutils.CronUtilsI18N")).accepts(hints)
     }
 
     @Test

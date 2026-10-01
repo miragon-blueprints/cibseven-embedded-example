@@ -9,9 +9,11 @@ import org.springframework.aot.hint.TypeReference
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates.proxies
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates.reflection
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates.resource
+import java.sql.CallableStatement
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
+import java.sql.Statement
 
 class LibraryRuntimeHintsTest {
 
@@ -22,12 +24,17 @@ class LibraryRuntimeHintsTest {
         val hints = hintsOf(MyBatisRuntimeHints())
 
         // then: the types MyBatis instantiates by name are constructible
-        MyBatisRuntimeHints.TYPES_INSTANTIATED_BY_NAME.forEach {
+        listOf(
+            "org.apache.ibatis.session.Configuration",
+            "org.apache.ibatis.logging.slf4j.Slf4jImpl",
+            "org.apache.ibatis.scripting.xmltags.XMLLanguageDriver",
+            "org.apache.ibatis.scripting.defaults.RawLanguageDriver",
+        ).forEach {
             assertThat(reflection().onType(TypeReference.of(it)).withMemberCategory(MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS))
                 .`as`(it).accepts(hints)
         }
         // and: the Javassist probe resolves and the bundled DTDs are embedded
-        assertThat(reflection().onType(TypeReference.of(MyBatisRuntimeHints.JAVASSIST_PROBE))).accepts(hints)
+        assertThat(reflection().onType(TypeReference.of("org.apache.ibatis.javassist.util.proxy.ProxyFactory"))).accepts(hints)
         assertThat(resource().forResource("org/apache/ibatis/builder/xml/mybatis-3-config.dtd")).accepts(hints)
         assertThat(resource().forResource("org/apache/ibatis/builder/xml/mybatis-3-mapper.dtd")).accepts(hints)
     }
@@ -40,10 +47,18 @@ class LibraryRuntimeHintsTest {
 
         // then: the methods the mapper XML calls on JDK types are invocable
         assertThat(reflection().onMethodInvocation(String::class.java, "equals")).accepts(hints)
+        assertThat(reflection().onMethodInvocation(String::class.java, "contains")).accepts(hints)
         assertThat(reflection().onMethodInvocation(java.util.Collection::class.java, "isEmpty")).accepts(hints)
+        assertThat(reflection().onMethodInvocation(java.util.AbstractCollection::class.java, "isEmpty")).accepts(hints)
         // and: the JDBC logging proxies can be created
-        listOf(Connection::class.java, PreparedStatement::class.java, ResultSet::class.java).forEach {
-            assertThat(proxies().forInterfaces(it)).accepts(hints)
+        listOf(
+            Connection::class.java,
+            Statement::class.java,
+            PreparedStatement::class.java,
+            CallableStatement::class.java,
+            ResultSet::class.java,
+        ).forEach {
+            assertThat(proxies().forInterfaces(it)).`as`(it.name).accepts(hints)
         }
     }
 
@@ -53,20 +68,24 @@ class LibraryRuntimeHintsTest {
         // given / when: the hints contributed for Jersey
         val hints = hintsOf(JerseyRuntimeHints())
 
-        // then: providers from modules without their own metadata are open for injection
+        // then: Jersey's own providers, the HK2 bridge and the Jackson types Jersey wires are open for injection
         listOf(
             "org.glassfish.jersey.jackson.internal.DefaultJacksonJaxbJsonProvider",
             "org.glassfish.jersey.server.validation.internal.ValidationBinder",
             "org.glassfish.jersey.server.spring.SpringComponentProvider",
             "org.glassfish.jersey.internal.inject.ParamConverters\$AggregatedProvider",
             "org.jvnet.hk2.spring.bridge.internal.SpringIntoHK2BridgeImpl",
+            "com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider",
+            "com.fasterxml.jackson.jakarta.rs.base.ProviderBase",
+            "com.fasterxml.jackson.module.jakarta.xmlbind.JakartaXmlBindAnnotationIntrospector",
         ).forEach {
-            assertThat(reflection().onType(TypeReference.of(it)).withMemberCategories(*JerseyRuntimeHints.INJECTABLE))
-                .`as`(it).accepts(hints)
-        }
-        JerseyRuntimeHints.JACKSON_TYPES_WIRED_BY_JERSEY.forEach {
-            assertThat(reflection().onType(TypeReference.of(it)).withMemberCategories(*JerseyRuntimeHints.INJECTABLE))
-                .`as`(it).accepts(hints)
+            assertThat(
+                reflection().onType(TypeReference.of(it)).withMemberCategories(
+                    MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+                    MemberCategory.INVOKE_DECLARED_METHODS,
+                    MemberCategory.ACCESS_DECLARED_FIELDS,
+                ),
+            ).`as`(it).accepts(hints)
         }
     }
 
@@ -94,10 +113,16 @@ class LibraryRuntimeHintsTest {
         val hints = hintsOf(EnversRuntimeHints())
 
         // then: the types Hibernate maps and Spring Data instantiates are open
-        EnversRuntimeHints.TYPES_MAPPED_OR_INSTANTIATED_REFLECTIVELY.forEach {
+        listOf(
+            "org.hibernate.envers.DefaultRevisionEntity",
+            "org.hibernate.envers.RevisionMapping",
+            "org.springframework.data.envers.repository.support.EnversRevisionRepositoryImpl",
+        ).forEach {
             assertThat(
                 reflection().onType(TypeReference.of(it)).withMemberCategories(
                     MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+                    MemberCategory.INVOKE_DECLARED_METHODS,
+                    MemberCategory.INVOKE_PUBLIC_METHODS,
                     MemberCategory.ACCESS_DECLARED_FIELDS,
                 ),
             ).`as`(it).accepts(hints)

@@ -22,24 +22,24 @@ class JerseyRuntimeHints : RuntimeHintsRegistrar {
         RESOURCE_PATTERNS.forEach { hints.resources().registerPattern(it) }
     }
 
-    companion object {
-        val PACKAGES_WIRED_BY_HK2 = listOf("org.glassfish.jersey", "org.jvnet.hk2")
+    private companion object {
+        private val PACKAGES_WIRED_BY_HK2 = listOf("org.glassfish.jersey", "org.jvnet.hk2")
 
-        val JACKSON_TYPES_WIRED_BY_JERSEY =
+        private val JACKSON_TYPES_WIRED_BY_JERSEY =
             listOf(
                 "com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider",
                 "com.fasterxml.jackson.jakarta.rs.base.ProviderBase",
                 "com.fasterxml.jackson.module.jakarta.xmlbind.JakartaXmlBindAnnotationIntrospector",
             )
 
-        val INJECTABLE =
+        private val INJECTABLE =
             arrayOf(
                 MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                 MemberCategory.INVOKE_DECLARED_METHODS,
                 MemberCategory.ACCESS_DECLARED_FIELDS,
             )
 
-        val RESOURCE_PATTERNS =
+        private val RESOURCE_PATTERNS =
             listOf(
                 "org/glassfish/jersey/**/localization*.properties",
                 "META-INF/services/org.glassfish.jersey.*",

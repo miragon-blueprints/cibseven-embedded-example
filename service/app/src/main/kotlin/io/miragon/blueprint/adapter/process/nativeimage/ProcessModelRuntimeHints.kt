@@ -14,7 +14,7 @@ class ProcessModelRuntimeHints : RuntimeHintsRegistrar {
         MODEL_PATTERNS.forEach { hints.resources().registerPattern(it) }
     }
 
-    companion object {
-        val MODEL_PATTERNS = listOf("bpmn/*.bpmn", "dmn/*.dmn", "forms/*.form")
+    private companion object {
+        private val MODEL_PATTERNS = listOf("bpmn/*.bpmn", "dmn/*.dmn", "forms/*.form")
     }
 }

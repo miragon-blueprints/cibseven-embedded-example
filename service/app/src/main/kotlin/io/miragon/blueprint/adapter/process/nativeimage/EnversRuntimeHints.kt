@@ -25,8 +25,8 @@ class EnversRuntimeHints : RuntimeHintsRegistrar {
         }
     }
 
-    companion object {
-        val TYPES_MAPPED_OR_INSTANTIATED_REFLECTIVELY =
+    private companion object {
+        private val TYPES_MAPPED_OR_INSTANTIATED_REFLECTIVELY =
             listOf(
                 "org.hibernate.envers.DefaultRevisionEntity",
                 "org.hibernate.envers.RevisionMapping",

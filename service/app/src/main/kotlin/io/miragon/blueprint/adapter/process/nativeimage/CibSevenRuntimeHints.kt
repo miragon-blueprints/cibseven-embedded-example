@@ -26,27 +26,27 @@ class CibSevenRuntimeHints : RuntimeHintsRegistrar {
         JDK_TYPES_IN_SERIALIZED_VARIABLES.forEach { hints.reflection().registerJavaSerialization(it) }
     }
 
-    fun reflectiveClasses(classLoader: ClassLoader?): List<ClasspathScan.ScannedClass> =
+    private fun reflectiveClasses(classLoader: ClassLoader?): List<ClasspathScan.ScannedClass> =
         ClasspathScan(classLoader)
             .classesIn(ROOT_PACKAGE)
-            .filterNot { scanned -> REFLECTION_FREE_PACKAGES.any { scanned.name.startsWith("$it.") } }
+            .filterNot { it.name.startsWith(REFLECTION_FREE_MODEL_API) }
 
-    companion object {
+    private companion object {
         const val ROOT_PACKAGE = "org.cibseven"
 
         const val CRON_MESSAGES_BUNDLE = "camundajar.impl.com.cronutils.CronUtilsI18N"
 
-        val REFLECTION_FREE_PACKAGES = listOf("org.cibseven.bpm.model")
+        const val REFLECTION_FREE_MODEL_API = "org.cibseven.bpm.model."
 
-        val JDK_TYPES_INSTANTIATED_BY_NAME = listOf("java.security.SecureRandom")
+        private val JDK_TYPES_INSTANTIATED_BY_NAME = listOf("java.security.SecureRandom")
 
-        val FEEL_SCRIPT_ENGINE_FACTORIES =
+        private val FEEL_SCRIPT_ENGINE_FACTORIES =
             listOf(
                 "org.camunda.feel.impl.script.FeelScriptEngineFactory",
                 "org.camunda.feel.impl.script.FeelUnaryTestsScriptEngineFactory",
             )
 
-        val JDK_TYPES_IN_SERIALIZED_VARIABLES: List<Class<*>> =
+        private val JDK_TYPES_IN_SERIALIZED_VARIABLES: List<Class<*>> =
             listOf(
                 String::class.java,
                 java.lang.Boolean::class.java,
@@ -64,7 +64,7 @@ class CibSevenRuntimeHints : RuntimeHintsRegistrar {
                 java.util.LinkedHashSet::class.java,
             )
 
-        val RESOURCE_PATTERNS =
+        private val RESOURCE_PATTERNS =
             listOf(
                 "org/cibseven/**/*.xml",
                 "org/cibseven/**/*.sql",

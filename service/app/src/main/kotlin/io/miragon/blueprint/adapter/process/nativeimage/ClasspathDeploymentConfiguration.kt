@@ -28,7 +28,7 @@ class ClasspathDeploymentConfiguration : DefaultDeploymentConfiguration() {
 
     private fun isDeployable(resource: Resource) = resource.isReadable && !resource.url.toString().endsWith("/")
 
-    private fun withoutFileDependency(resource: Resource): Resource =
+    internal fun withoutFileDependency(resource: Resource): Resource =
         if (resource is FileSystemResource && resource.uri.scheme != DEFAULT_FILE_SYSTEM) {
             InMemoryModel(resource.contentAsByteArray, checkNotNull(resource.filename))
         } else {

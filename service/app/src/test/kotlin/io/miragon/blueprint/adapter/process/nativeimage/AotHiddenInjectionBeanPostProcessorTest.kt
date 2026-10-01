@@ -7,6 +7,7 @@ import org.cibseven.bpm.spring.boot.starter.property.CamundaBpmProperties
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.aot.AotDetector
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.support.DefaultListableBeanFactory
 import org.springframework.beans.factory.support.RootBeanDefinition
 import org.springframework.core.SpringProperties
@@ -74,9 +75,9 @@ class AotHiddenInjectionBeanPostProcessorTest {
     @Test
     fun `beans that are not on the list or have no bean definition are ignored`() {
 
-        // given: AOT mode
+        // given: AOT mode, an unlisted bean with an @Autowired member and a listed one without a definition
         SpringProperties.setProperty(AotDetector.AOT_ENABLED, "true")
-        val unlisted = Any()
+        val unlisted = UnlistedBean()
         val withoutDefinition = DefaultMetricsConfiguration()
 
         // when: both pass the post-processor
@@ -85,6 +86,13 @@ class AotHiddenInjectionBeanPostProcessorTest {
 
         // then: neither is touched
         assertThat(result).isSameAs(unlisted)
+        assertThat(unlisted.properties).isNull()
         assertThat(ReflectionTestUtils.getField(withoutDefinition, "camundaBpmProperties")).isNull()
+    }
+
+    private class UnlistedBean {
+
+        @Autowired
+        var properties: CamundaBpmProperties? = null
     }
 }

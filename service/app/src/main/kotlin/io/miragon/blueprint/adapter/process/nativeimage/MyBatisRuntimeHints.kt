@@ -32,12 +32,12 @@ class MyBatisRuntimeHints : RuntimeHintsRegistrar {
         hints.reflection().registerType(TypeReference.of(JAVASSIST_PROBE))
     }
 
-    companion object {
+    private companion object {
         const val BUNDLED_DTDS = "org/apache/ibatis/builder/xml/*.dtd"
 
         const val JAVASSIST_PROBE = "org.apache.ibatis.javassist.util.proxy.ProxyFactory"
 
-        val TYPES_INSTANTIATED_BY_NAME =
+        private val TYPES_INSTANTIATED_BY_NAME =
             listOf(
                 "org.apache.ibatis.session.Configuration",
                 "org.apache.ibatis.logging.slf4j.Slf4jImpl",
@@ -45,7 +45,7 @@ class MyBatisRuntimeHints : RuntimeHintsRegistrar {
                 "org.apache.ibatis.scripting.defaults.RawLanguageDriver",
             )
 
-        val TYPES_CALLED_FROM_OGNL: List<Class<*>> =
+        private val TYPES_CALLED_FROM_OGNL: List<Class<*>> =
             listOf(
                 String::class.java,
                 java.util.Collection::class.java,
@@ -55,7 +55,7 @@ class MyBatisRuntimeHints : RuntimeHintsRegistrar {
                 java.util.Map::class.java,
             )
 
-        val JDBC_TYPES_PROXIED_FOR_STATEMENT_LOGGING: List<Class<*>> =
+        private val JDBC_TYPES_PROXIED_FOR_STATEMENT_LOGGING: List<Class<*>> =
             listOf(
                 Connection::class.java,
                 Statement::class.java,

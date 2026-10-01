@@ -69,6 +69,17 @@ class ClasspathScanTest {
     }
 
     @Test
+    fun `scans through the given class loader and falls back to the default one`() {
+
+        // given: a class loader that only sees the JDK
+        val jdkOnly = object : ClassLoader(null) {}
+
+        // when / then: nothing of this service is found through it, everything through the default
+        assertThat(ClasspathScan(jdkOnly).classesIn("io.miragon.blueprint.domain")).isEmpty()
+        assertThat(ClasspathScan(null).classesIn("io.miragon.blueprint.domain")).isNotEmpty()
+    }
+
+    @Test
     fun `opening a scanned class registers its members and its serializability`() {
 
         // given: a scanned serializable class

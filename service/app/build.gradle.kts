@@ -124,9 +124,16 @@ tasks.withType<BootJar> {
 // maintain (layered, non-root by default). See docs/adr/0011 and the "Run it in containers" section of
 // CONTRIBUTING.md. Build with `./gradlew :service:app:bootBuildImage`.
 tasks.named<BootBuildImage>("bootBuildImage") {
-    imageName.set("miravelo/cibseven-embedded-example:${project.version}")
-    // Pin the JVM the buildpack installs to the version the code targets.
-    environment.set(mapOf("BP_JVM_VERSION" to "21"))
+    if (nativeBuild) {
+        // The native lane builds a separate image: the buildpack compiles the executable with a
+        // GraalVM 25 based toolchain, the baseline Spring Boot 4 requires for native images.
+        imageName.set("miravelo/cibseven-embedded-example-native:${project.version}")
+        environment.set(mapOf("BP_NATIVE_IMAGE" to "true", "BP_JVM_VERSION" to "25"))
+    } else {
+        imageName.set("miravelo/cibseven-embedded-example:${project.version}")
+        // Pin the JVM the buildpack installs to the version the code targets.
+        environment.set(mapOf("BP_JVM_VERSION" to "21"))
+    }
 }
 
 java.sourceCompatibility = JavaVersion.VERSION_21

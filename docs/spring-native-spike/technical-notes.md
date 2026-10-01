@@ -1,6 +1,8 @@
-# Spike — running the embedded CIB seven engine as a GraalVM native image
+# Technical notes — the embedded CIB seven engine as a GraalVM native image
 
-> **Status:** spike on the local branch `spike/spring-native`, 2026-10-01. Not merged, not pushed.
+> The short version is in the [summary](README.md).
+
+> **Status:** spike of 2026-10-01, kept on the tag `spring-native-spike`. Not merged into `main`.
 > **Result:** the service — REST API, embedded engine, `/engine-rest`, Cockpit / Tasklist, actuator —
 > runs as a native executable on macOS/arm64 and passes the same end-to-end scenarios as the JVM build:
 > ready in 0.7–0.9 s instead of 4.5–5 s, with 340–410 MB instead of 940–1000 MB of resident memory.

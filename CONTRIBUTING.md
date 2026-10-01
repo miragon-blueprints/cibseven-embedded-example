@@ -103,7 +103,7 @@ environment (they win over the baked defaults):
 # BPMN
 npm run lint:bpmn        # bpmnlint the .bpmn models
 
-# native lane — opt-in, needs GraalVM 25 (GRAALVM_HOME); see docs/spring-native-spike.md
+# native lane — opt-in, needs GraalVM 25 (GRAALVM_HOME); see docs/spring-native-spike/
 ./gradlew -Pnative :service:app:aotTest         # native-tagged tests on the JVM in AOT mode
 ./gradlew -Pnative :service:app:nativeTest      # the same tests inside a native test image
 ./gradlew -Pnative :service:app:nativeCompile   # the native executable

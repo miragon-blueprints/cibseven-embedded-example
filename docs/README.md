@@ -32,8 +32,9 @@ copied from [`adr/0000-adr-template.md`](adr/0000-adr-template.md).
 
 ## Spikes
 
-- [`spring-native-spike.md`](spring-native-spike.md) — running the embedded engine as a GraalVM native
-  image: what it took, what was measured, and the recommendation.
+- [`spring-native-spike/`](spring-native-spike/README.md) — running the embedded engine as a GraalVM
+  native image: summary and recommendation, with the [technical notes](spring-native-spike/technical-notes.md)
+  behind it.
 
 ## Diagrams
 

@@ -76,7 +76,7 @@ Under Conductor the ports are fixed and the workspace runs `nonconcurrent`
 | API scenarios (running stack) | `cd bruno && npx --yes @usebruno/cli@4.0.0 run . --env local -r` |
 | BPMN lint | `npm run lint:bpmn` |
 | Backend OCI image | `./gradlew :service:app:bootBuildImage` (image `miravelo/cibseven-embedded-example`) — [ADR-0011](docs/adr/0011-build-and-deployment-approach.md), CONTRIBUTING "Run it in containers" |
-| Native executable (opt-in, GraalVM 25 via `GRAALVM_HOME`) | `./gradlew -Pnative :service:app:nativeCompile` — [spike notes](docs/spring-native-spike.md) |
+| Native executable (opt-in, GraalVM 25 via `GRAALVM_HOME`) | `./gradlew -Pnative :service:app:nativeCompile` — [spike notes](docs/spring-native-spike/README.md) |
 | Native-tagged tests: JVM in AOT mode · native test image | `./gradlew -Pnative :service:app:aotTest` · `./gradlew -Pnative :service:app:nativeTest` |
 | Acceptance run against a started jar / native executable | `scripts/e2e.sh jvm` · `scripts/e2e.sh native` |
 

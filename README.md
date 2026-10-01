@@ -168,7 +168,7 @@ scripts/e2e.sh native                           # Bruno + webapp + restart check
 ```
 
 What it took, what it measured and why it is not the default:
-[`docs/spring-native-spike.md`](docs/spring-native-spike.md).
+[`docs/spring-native-spike/`](docs/spring-native-spike/README.md).
 
 ## Contributing
 

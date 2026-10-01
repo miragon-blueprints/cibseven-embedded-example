@@ -42,17 +42,21 @@ class ClasspathScanTest {
     }
 
     @Test
-    fun `members that reference an absent optional dependency are left out`() {
+    fun `classes and members that depend on an absent optional library are left out`() {
 
-        // given: the Jersey package holding its OSGi integration, whose constructors and fields use OSGi types
-        // when: it is scanned
-        val scanned = underTest.classesIn("org.glassfish.jersey.internal").associateBy { it.name }
+        // given: the Jersey package holding its OSGi integration, and the engine package with its JBoss VFS logger
+        // when: they are scanned
+        val jersey = underTest.classesIn("org.glassfish.jersey.internal").associateBy { it.name }
+        val container = underTest.classesIn("org.cibseven.bpm.container.impl").associateBy { it.name }
 
-        // then: only the member kinds that link without OSGi are offered for the integration class
-        assertThat(scanned.getValue("org.glassfish.jersey.internal.OsgiRegistry\$OsgiServiceFinder").linkableMembers)
-            .doesNotContain(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.ACCESS_DECLARED_FIELDS)
-        // and: a class of the same package without such references keeps all member kinds
-        assertThat(scanned.getValue("org.glassfish.jersey.internal.Errors").linkableMembers)
+        // then: a class nested in the OSGi listener, which cannot be linked, is dropped
+        assertThat(jersey).doesNotContainKey("org.glassfish.jersey.internal.OsgiRegistry\$OsgiServiceFinder")
+        // and: a class with only some VFS-typed methods keeps the member kinds that do link
+        assertThat(container.getValue("org.cibseven.bpm.container.impl.ContainerIntegrationLogger").linkableMembers)
+            .contains(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS)
+            .doesNotContain(MemberCategory.INVOKE_DECLARED_METHODS)
+        // and: a class without such references keeps all member kinds
+        assertThat(jersey.getValue("org.glassfish.jersey.internal.Errors").linkableMembers)
             .containsExactlyInAnyOrder(*ALL_MEMBER_KINDS.toTypedArray())
     }
 

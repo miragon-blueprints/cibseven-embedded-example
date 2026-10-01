@@ -12,9 +12,9 @@ import java.util.jar.JarFile
 
 /**
  * Lists the classes of a package at AOT build time, each with the kinds of members that can be opened
- * for reflection. Members whose signatures reference an absent optional dependency (OSGi, JBoss VFS,
- * JUnit 3, …) are left out: they cannot be used at run time either, and naming them in a hint only
- * makes the native-image builder stumble over the missing types.
+ * for reflection. Classes nested in, and members whose signatures reference, an absent optional
+ * dependency (OSGi, JBoss VFS, JUnit 3, …) are left out: they cannot be used at run time either, and
+ * naming them in a hint only makes the native-image builder stumble over the missing types.
  *
  * Jars are read entry by entry instead of through a `classpath*:` pattern, because for a
  * multi-release jar such a pattern only sees the handful of classes in its versioned directory.
@@ -52,6 +52,7 @@ class ClasspathScan(classLoader: ClassLoader?) {
 
     private fun scanned(className: String): ScannedClass? {
         val type = linked { Class.forName(className, false, classLoader) } ?: return null
+        linked { type.enclosingClass.let { } } ?: return null
         return ScannedClass(
             name = className,
             linkableMembers =

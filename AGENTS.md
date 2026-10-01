@@ -28,11 +28,13 @@ service/
     adapter/outbound/db         JPA persistence (leasing applications + bike portfolio)
     adapter/outbound/…          simulated dealer / contract / insurance / notification adapters
     adapter/process             generated *ProcessApi (bpmn-to-code) + engine config
+    adapter/process/nativeimage GraalVM native-image support: runtime hints + AOT workarounds for the engine
     application/{port,service}  use-case ports and their services
     domain/{leasing,bike}       pure domain model
     resources/{bpmn,dmn,forms}  the process models and Camunda Forms
     resources/db/migration      Flyway versioned schema migrations
 bruno/                         REST scenarios (happy-path / escalation / abort / not-solvent / …)
+scripts/                       e2e.sh — acceptance run against the jar or the native executable
 openapi/                       the checked-in, drift-gated OpenAPI contract (openapi.json)
 docs/                          Architecture Decision Records + diagrams
 stack/                         Postgres dev stack (docker compose)
@@ -74,6 +76,9 @@ Under Conductor the ports are fixed and the workspace runs `nonconcurrent`
 | API scenarios (running stack) | `cd bruno && npx --yes @usebruno/cli@4.0.0 run . --env local -r` |
 | BPMN lint | `npm run lint:bpmn` |
 | Backend OCI image | `./gradlew :service:app:bootBuildImage` (image `miravelo/cibseven-embedded-example`) — [ADR-0011](docs/adr/0011-build-and-deployment-approach.md), CONTRIBUTING "Run it in containers" |
+| Native executable (opt-in, GraalVM 25 via `GRAALVM_HOME`) | `./gradlew -Pnative :service:app:nativeCompile` — [spike notes](docs/spring-native-spike.md) |
+| Native-tagged tests: JVM in AOT mode · native test image | `./gradlew -Pnative :service:app:aotTest` · `./gradlew -Pnative :service:app:nativeTest` |
+| Acceptance run against a started jar / native executable | `scripts/e2e.sh jvm` · `scripts/e2e.sh native` |
 
 ## Architecture — the rules are machine-enforced
 
@@ -90,6 +95,9 @@ hard rules:
   there.
 - **`adapter/process` is generated.** Never hand-edit `*ProcessApi.kt`; edit the `.bpmn` and re-run
   `generateBpmnModels`.
+- **`adapter/process/nativeimage` is hand-written** and only matters for the native lane (`-Pnative`).
+  A test tagged `native` must not use MockK, JGiven, ArchUnit or Konsist — it is compiled into the
+  native test image. After a CIB seven upgrade re-run `nativeTest` and `scripts/e2e.sh native`.
 - **Suffixes:** inbound port `UseCase|Query`; outbound `Port|Repository|Process`; service
   `Service|Configuration`; `adapter.inbound.rest` `Controller|Dto|Input|Mapper|Configuration`;
   `adapter.inbound.cibseven` `Delegate|Worker|Listener`; `adapter.outbound`

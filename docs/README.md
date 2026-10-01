@@ -30,6 +30,11 @@ copied from [`adr/0000-adr-template.md`](adr/0000-adr-template.md).
 | [0010](adr/0010-flyway-for-database-migrations.md) | Flyway for versioned schema migrations; Hibernate switches to `validate`. |
 | [0011](adr/0011-build-and-deployment-approach.md) | Build & deployment: `bootBuildImage` OCI image for the headless app. |
 
+## Spikes
+
+- [`spring-native-spike.md`](spring-native-spike.md) — running the embedded engine as a GraalVM native
+  image: what it took, what was measured, and the recommendation.
+
 ## Diagrams
 
 - [`assets/bike-leasing.png`](assets/bike-leasing.png) — the BPMN process at a glance.

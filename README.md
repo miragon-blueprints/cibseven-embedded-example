@@ -156,6 +156,20 @@ Want to teach **transaction boundaries, retries and incidents**? Submit a reques
 down (`R3/PT10S`), and an **incident** appears in the Cockpit to analyze and retry. A ready-to-run
 Bruno collection lives in `bruno/06-incident-demo/`.
 
+## Native image (spike)
+
+The service can also be built as a GraalVM native executable — an opt-in lane that leaves the JVM build
+untouched. It needs GraalVM 25 (`GRAALVM_HOME`) and roughly 15–20 GB of free RAM for the build:
+
+```bash
+./gradlew -Pnative :service:app:nativeCompile   # -> service/app/build/native/nativeCompile/app
+./gradlew -Pnative :service:app:nativeTest      # the process scenarios inside a native test image
+scripts/e2e.sh native                           # Bruno + webapp + restart checks against the executable
+```
+
+What it took, what it measured and why it is not the default:
+[`docs/spring-native-spike.md`](docs/spring-native-spike.md).
+
 ## Contributing
 
 Contributions are welcome. Please open an issue to discuss substantial changes first, keep the

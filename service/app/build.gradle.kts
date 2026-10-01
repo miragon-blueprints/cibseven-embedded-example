@@ -14,6 +14,16 @@ plugins {
     alias(libs.plugins.spring.dependency)
     alias(libs.plugins.bpmnToCode)
     alias(libs.plugins.pitest)
+    alias(libs.plugins.graalvm.native) apply false
+}
+
+val nativeBuild = providers.gradleProperty("native").isPresent
+
+if (nativeBuild) {
+    apply(plugin = libs.plugins.graalvm.native.get().pluginId)
+    configurations.all {
+        exclude(group = "org.springframework.boot", module = "spring-boot-devtools")
+    }
 }
 
 springBoot {

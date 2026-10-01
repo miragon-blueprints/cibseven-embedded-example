@@ -104,6 +104,25 @@ webapps() {
   rm -f "${cookies}"
 }
 
+read_api_sweep() {
+  echo "Engine read APIs beyond the scenarios"
+  local path unavailable=""
+  for path in \
+      process-definition/statistics process-instance/count execution task job job-definition incident deployment \
+      decision-definition decision-requirements-definition case-definition variable-instance event-subscription \
+      external-task batch batch/statistics filter metrics schema/log telemetry/data \
+      user group tenant authorization "identity/groups?userId=admin" \
+      history/process-instance history/activity-instance history/task history/variable-instance history/detail \
+      history/incident history/job-log history/decision-instance history/user-operation history/identity-link-log \
+      history/external-task-log history/batch history/cleanup/configuration \
+      history/process-definition/cleanable-process-instance-report \
+      "history/task/report?reportType=count&groupBy=processDefinition" \
+      "history/process-instance/report?reportType=duration&periodUnit=month"; do
+    status_is 200 "${engine_rest}/${path}" || unavailable="${unavailable} ${path}"
+  done
+  check "query, statistics, report and identity endpoints answer${unavailable:+ (failing:${unavailable})}" test -z "${unavailable}"
+}
+
 bruno_scenarios() {
   echo "Bruno scenarios (happy path, escalation, abort, not solvent, bike unavailable, incident, list and inbox)"
   if (cd "${repo_root}/bruno" && npx --yes @usebruno/cli@4.0.0 run . --env local -r \
@@ -163,6 +182,7 @@ scenarios_started_at="$(now_ms)"
 bruno_scenarios
 scenarios_ms=$(( $(now_ms) - scenarios_started_at ))
 loaded_rss="$(rss_mb)"
+read_api_sweep
 user_task_form
 restart_survival
 

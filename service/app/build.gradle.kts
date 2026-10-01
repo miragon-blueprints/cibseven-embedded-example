@@ -32,6 +32,14 @@ if (nativeBuild) {
             buildArgs.addAll("--exclude-config", ".*kotlin-compiler-embeddable.*", "META-INF/native-image/.*")
         }
     }
+    tasks.register<Test>("aotTest") {
+        group = "verification"
+        description = "Runs the native-tagged tests on the JVM against the AOT-generated test contexts."
+        testClassesDirs = sourceSets["test"].output.classesDirs
+        classpath = sourceSets["aotTest"].output + sourceSets["test"].runtimeClasspath
+        useJUnitPlatform { includeTags("native") }
+        systemProperty("spring.aot.enabled", "true")
+    }
 }
 
 springBoot {

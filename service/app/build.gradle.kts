@@ -1,6 +1,7 @@
 import io.miragon.bpmn.adapter.GenerateBpmnModelsTask
 import io.miragon.bpmn.domain.shared.OutputLanguage
 import io.miragon.bpmn.domain.shared.ProcessEngine
+import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import java.math.BigDecimal
@@ -23,6 +24,13 @@ if (nativeBuild) {
     apply(plugin = libs.plugins.graalvm.native.get().pluginId)
     configurations.all {
         exclude(group = "org.springframework.boot", module = "spring-boot-devtools")
+    }
+    configure<GraalVMExtension> {
+        binaries.named("test") {
+            // Konsist drags in the Kotlin compiler, whose bundled JLine native-image.properties point at
+            // configuration files the jar does not contain — native-image aborts on them.
+            buildArgs.addAll("--exclude-config", ".*kotlin-compiler-embeddable.*", "META-INF/native-image/.*")
+        }
     }
 }
 
@@ -61,7 +69,9 @@ tasks.named("classes") {
 }
 
 tasks.test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        if (nativeBuild) includeTags("native")
+    }
     forkEvery = 1
 }
 

@@ -88,8 +88,9 @@ hard rules:
   root package, so `io.miragon.blueprint.config` would fail. Cross-cutting `@Configuration` (CORS,
   OpenAPI, error handling) goes in `adapter.inbound.rest` — the `Configuration` suffix is whitelisted
   there.
-- **`adapter/process` is generated.** Never hand-edit `*ProcessApi.kt`; edit the `.bpmn` and re-run
-  `generateBpmnModels`.
+- **`adapter/process` is generated.** Never hand-edit `*ProcessApi.kt` or the shared
+  `ServiceTasks`/`Messages`/`ProcessVariables`/`Errors`/`Escalations` files; edit the `.bpmn` and
+  re-run `generateBpmnModels`.
 - **Suffixes:** inbound port `UseCase|Query`; outbound `Port|Repository|Process`; service
   `Service|Configuration`; `adapter.inbound.rest` `Controller|Dto|Input|Mapper|Configuration`;
   `adapter.inbound.cibseven` `Delegate|Worker|Listener`; `adapter.outbound`
@@ -100,6 +101,10 @@ hard rules:
 
 - `bpmn-to-code` generates typed process constants from the models at build time; a custom model
   test requires every service task to use a delegate expression (`#{beanName}`).
+- Since bpmn-to-code 6 the API is node-centric: `<Process>ProcessApi.FlowNodes.<Node>` carries the
+  element (`.id`, `ELEMENT_ID`), its `Variables` and its successors (`Next`). Process tests assert
+  the walked path as a compile-checked `ProcessPath` (`process/util/ProcessPathAssertions.kt`)
+  instead of hand-maintained element-id lists.
 - `bpmnlint` runs on staged `.bpmn` via `.githooks/pre-commit` (install: `npm run hooks:install`).
 
 ## Testing
@@ -112,7 +117,7 @@ TDD. Match the test style to the layer:
 | application service | mockk unit tests (mock the ports) |
 | `adapter.inbound.rest` | `@WebMvcTest` + MockkBean |
 | `adapter.outbound.db` | `@DataJpaTest` |
-| process end-to-end | CIB seven process tests (JGiven) |
+| process end-to-end | CIB seven process tests (JGiven), paths asserted via `ProcessPath` |
 
 **Mutation testing gates PRs at 80** (`:service:app:pitest`): a test that executes without asserting
 will fail CI. Coverage says a line ran; mutation says a test would have noticed. The PR gate runs

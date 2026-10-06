@@ -1,8 +1,7 @@
 package io.miragon.blueprint.adapter.outbound.cibseven
 
-import io.miragon.blueprint.adapter.process.BikeLeasingProcessProcessApi.Elements
-import io.miragon.blueprint.adapter.process.BikeLeasingProcessProcessApi.Messages
-import io.miragon.blueprint.adapter.process.BikeLeasingProcessProcessApi.Variables
+import io.miragon.blueprint.adapter.process.BikeLeasingProcessProcessApi.FlowNodes
+import io.miragon.blueprint.adapter.process.Messages
 import io.miragon.blueprint.application.port.outbound.LeasingProcess
 import io.miragon.blueprint.domain.leasing.ApplicationId
 import io.miragon.blueprint.domain.bike.BikeId
@@ -24,7 +23,7 @@ class LeasingProcessAdapter(
 ) : LeasingProcess {
 
     override fun submitRequest(application: LeasingApplication) {
-        val start = Variables.StartEventLeasingRequestReceived
+        val start = FlowNodes.StartEventLeasingRequestReceived.Variables
         runtimeService.startProcessInstanceByMessage(
             Messages.MIRAVELO_LEASING_REQUEST_RECEIVED.value,
             application.id.value.toString(),
@@ -56,11 +55,11 @@ class LeasingProcessAdapter(
         bikeId: BikeId?,
     ) = taskService.completeTask(
         businessKey = id.value.toString(),
-        taskDefinitionKey = Elements.USER_TASK_CLARIFY_ALTERNATIVE.value,
+        taskDefinitionKey = FlowNodes.UserTaskClarifyAlternative.id.value,
         variables = buildMap {
-            put(Variables.UserTaskClarifyAlternative.ALTERNATIVE_FOUND.value, alternativeFound)
+            put(FlowNodes.UserTaskClarifyAlternative.Variables.ALTERNATIVE_FOUND.value, alternativeFound)
             // The re-order reads the same start-injected bike variable, so reuse its name.
-            bikeId?.let { put(Variables.StartEventLeasingRequestReceived.BIKE_ID.value, it.value) }
+            bikeId?.let { put(FlowNodes.StartEventLeasingRequestReceived.Variables.BIKE_ID.value, it.value) }
         },
     )
 }

@@ -73,8 +73,9 @@ package.json                   root-level bpmnlint config + git-hook installer
 - **Stack:** Kotlin 2.4 · Spring Boot 4 · CIB seven 2.2 (embedded) · PostgreSQL · Flyway · Gradle with
   a `libs.versions.toml` version catalog.
 - **Generated process API:** the [`bpmn-to-code`](https://github.com/emaarco/bpmn-to-code) Gradle
-  plugin turns each `.bpmn` into a typed `*ProcessApi` object, so element ids, messages, timers and
-  variables are compile-checked constants used by both delegates and tests.
+  plugin turns each `.bpmn` into a typed, node-centric `*ProcessApi` object (plus shared
+  `Messages`/`ServiceTasks`/`ProcessVariables` files), so element ids, messages, timers, variables
+  and the paths the process tests walk are compile-checked.
 - **Forms:** Camunda Forms (`.form`) are deployed with the process and render in the CIB seven
   Tasklist/Cockpit for the user tasks.
 - **OpenAPI contract:** `springdoc` serves the live spec at `/v3/api-docs` (Swagger UI at

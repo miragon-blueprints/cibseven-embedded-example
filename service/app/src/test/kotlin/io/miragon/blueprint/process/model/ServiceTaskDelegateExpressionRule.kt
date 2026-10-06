@@ -1,6 +1,7 @@
 package io.miragon.blueprint.process.model
 
 import io.miragon.bpmn.domain.shared.ServiceTaskDefinition
+import io.miragon.bpmn.domain.shared.TaskImplementation
 import io.miragon.bpmn.domain.validation.SingleModelValidationRule
 import io.miragon.bpmn.domain.validation.model.Severity
 import io.miragon.bpmn.domain.validation.model.SingleModelValidationContext
@@ -33,12 +34,6 @@ class ServiceTaskDelegateExpressionRule : SingleModelValidationRule {
                 )
             }
 
-    private fun usesDelegateExpression(task: ServiceTaskDefinition): Boolean {
-        val kind = task.engineSpecificProperties[ServiceTaskDefinition.IMPL_KIND_KEY] as? String
-        return kind == DELEGATE_EXPRESSION_KIND
-    }
-
-    private companion object {
-        const val DELEGATE_EXPRESSION_KIND = "DELEGATE_EXPRESSION"
-    }
+    private fun usesDelegateExpression(task: ServiceTaskDefinition): Boolean =
+        task.implementation is TaskImplementation.DelegateExpression
 }

@@ -1,7 +1,7 @@
 package io.miragon.blueprint.adapter.outbound.cibseven
 
-import io.miragon.blueprint.adapter.process.BikeLeasingProcessProcessApi.Elements
-import io.miragon.blueprint.adapter.process.BikeLeasingProcessProcessApi.Messages
+import io.miragon.blueprint.adapter.process.BikeLeasingProcessProcessApi.FlowNodes
+import io.miragon.blueprint.adapter.process.Messages
 import io.miragon.blueprint.domain.leasing.ApplicationId
 import io.miragon.blueprint.domain.bike.BikeId
 import io.miragon.blueprint.domain.leasing.testLeasingApplication
@@ -68,7 +68,7 @@ class LeasingProcessAdapterTest {
         // then: the clarify-alternative task is located by business key and completed with the decision variables
         verify { taskService.createTaskQuery() }
         verify { query.processInstanceBusinessKey(id.value.toString()) }
-        verify { query.taskDefinitionKey(Elements.USER_TASK_CLARIFY_ALTERNATIVE.value) }
+        verify { query.taskDefinitionKey(FlowNodes.UserTaskClarifyAlternative.id.value) }
         verify {
             taskService.complete(
                 "task-1",

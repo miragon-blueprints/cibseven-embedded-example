@@ -23,7 +23,7 @@ We structure `service/app` as a **hexagon (ports & adapters)** under `io.miragon
   service or any inbound port.
 - `adapter/inbound/{rest,cibseven}` — driving adapters (REST controllers, BPMN JavaDelegates/listeners).
 - `adapter/outbound/{db,cibseven,dealer,notification,contract,insurance}` — driven adapters.
-- `adapter/process` — the **generated** `*ProcessApi` (bpmn-to-code) plus engine config; a technical
+- `adapter/process` — the **generated** `*ProcessApi` and shared constants (bpmn-to-code) plus engine config; a technical
   seam that fits neither side of the split.
 
 These rules are **enforced by the reusable ArchUnit + Konsist suite** in

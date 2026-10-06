@@ -1,6 +1,6 @@
 package io.miragon.blueprint.process.util
 
-import io.miragon.bpmn.runtime.ElementId
+import io.miragon.bpmn.runtime.FlowNode
 import org.cibseven.bpm.engine.ProcessEngine
 
 /**
@@ -12,14 +12,14 @@ import org.cibseven.bpm.engine.ProcessEngine
  * The `camunda:asyncAfter` flags in the model create exactly these jobs after each step, and the job
  * executor is disabled in tests, so the test drives them by hand.
  */
-fun ProcessEngine.executeJobFor(activityId: ElementId) {
+fun ProcessEngine.executeJobFor(activity: FlowNode) {
     val job =
         managementService
             .createJobQuery()
             .messages()
-            .activityId(activityId.value)
+            .activityId(activity.id.value)
             .singleResult()
-    requireNotNull(job) { "no async-continuation job found for activity '${activityId.value}'" }
+    requireNotNull(job) { "no async-continuation job found for activity '${activity.id.value}'" }
     managementService.executeJob(job.id)
 }
 

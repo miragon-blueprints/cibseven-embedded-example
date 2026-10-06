@@ -65,8 +65,7 @@ pitest {
     failWhenNoMutations.set(false)
     excludedClasses.set(
         listOf(
-            "io.miragon.blueprint.adapter.process.*ProcessApi*",
-            "io.miragon.blueprint.adapter.process.HistoryCleanupConfiguration*",
+            "io.miragon.blueprint.adapter.process.*",
             "io.miragon.blueprint.CibsevenBikeLeasingApplication*",
             "io.miragon.blueprint.BikeCatalogueSeeder*",
             "io.miragon.blueprint.adapter.inbound.rest.DevCorsConfiguration*",

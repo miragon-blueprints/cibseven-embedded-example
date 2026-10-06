@@ -1,6 +1,6 @@
 package io.miragon.blueprint.adapter.inbound.cibseven
 
-import io.miragon.blueprint.adapter.process.BikeLeasingProcessProcessApi.Variables
+import io.miragon.blueprint.adapter.process.BikeLeasingProcessProcessApi.FlowNodes
 import mu.KotlinLogging
 import org.cibseven.bpm.engine.delegate.DelegateExecution
 import org.cibseven.bpm.engine.delegate.ExecutionListener
@@ -20,8 +20,8 @@ class BikeOrderAuditListener : ExecutionListener {
     private val log = KotlinLogging.logger {}
 
     override fun notify(execution: DelegateExecution) {
-        val orderId = execution.getVariable(Variables.ServiceTaskOrderBike.ORDER_ID.value)
-        val bikeAvailable = execution.getVariable(Variables.ServiceTaskOrderBike.BIKE_AVAILABLE.value)
+        val orderId = execution.getVariable(FlowNodes.ServiceTaskOrderBike.Variables.ORDER_ID.value)
+        val bikeAvailable = execution.getVariable(FlowNodes.ServiceTaskOrderBike.Variables.BIKE_AVAILABLE.value)
         log.info {
             "Bike order finished for application '${execution.processBusinessKey}': " +
                 "orderId=$orderId, bikeAvailable=$bikeAvailable"

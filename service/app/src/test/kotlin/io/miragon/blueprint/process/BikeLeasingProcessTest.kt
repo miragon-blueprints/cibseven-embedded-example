@@ -1,7 +1,7 @@
 package io.miragon.blueprint.process
 
 import com.ninjasquad.springmockk.MockkBean
-import io.miragon.blueprint.adapter.process.BikeLeasingProcessProcessApi.Elements
+import io.miragon.blueprint.adapter.process.BikeLeasingProcessProcessApi.FlowNodes
 import io.miragon.blueprint.adapter.process.CancelBikeOrderProcessApi
 import io.miragon.blueprint.application.port.inbound.ActivateLeasingUseCase
 import io.miragon.blueprint.application.port.inbound.BookCancellationCostsUseCase
@@ -27,6 +27,15 @@ import io.miragon.blueprint.process.util.continueToNextWaitState
 import io.miragon.blueprint.process.util.executeJobFor
 import io.miragon.blueprint.process.util.findProcessInstance
 import io.miragon.blueprint.process.util.fireTimer
+import io.miragon.blueprint.process.util.hasPassed
+import io.miragon.blueprint.process.util.hasPassedInOrder
+import io.miragon.bpmn.runtime.path.ProcessPath
+import io.miragon.bpmn.runtime.path.enter
+import io.miragon.bpmn.runtime.path.inside
+import io.miragon.bpmn.runtime.path.interruptedBy
+import io.miragon.bpmn.runtime.path.onto
+import io.miragon.bpmn.runtime.path.then
+import io.miragon.bpmn.runtime.path.throwingCompensation
 import io.mockk.every
 import io.mockk.verify
 import org.cibseven.bpm.engine.ProcessEngine
@@ -106,34 +115,42 @@ class BikeLeasingProcessTest {
         val instance = runtimeService.findProcessInstance(id)
 
         // async continuations up to the contract-signature wait state
-        processEngine.executeJobFor(Elements.START_EVENT_LEASING_REQUEST_RECEIVED)
-        processEngine.executeJobFor(Elements.SERVICE_TASK_VALIDATE_APPLICATION)
-        processEngine.executeJobFor(Elements.SERVICE_TASK_SEND_CONTRACT)
+        processEngine.executeJobFor(FlowNodes.StartEventLeasingRequestReceived)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskValidateApplication)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskSendContract)
 
         process.correlateContractSigned(id)
-        processEngine.executeJobFor(Elements.EVENT_CONTRACT_SIGNED) // forks into insurance + bike order
-        processEngine.executeJobFor(Elements.SERVICE_TASK_ISSUE_INSURANCE_POLICY)
-        processEngine.executeJobFor(Elements.SERVICE_TASK_ORDER_BIKE) // joins -> handover wait state
+        processEngine.executeJobFor(FlowNodes.EventContractSigned) // forks into insurance + bike order
+        processEngine.executeJobFor(FlowNodes.ServiceTaskIssueInsurancePolicy)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskOrderBike) // joins -> handover wait state
 
         process.correlateHandoverReported(id)
-        processEngine.executeJobFor(Elements.EVENT_HANDOVER_REPORTED) // -> withdrawal-period timer
+        processEngine.executeJobFor(FlowNodes.EventHandoverReported) // -> withdrawal-period timer
 
-        processEngine.fireTimer(Elements.EVENT_WITHDRAWAL_PERIOD_ELAPSED)
+        processEngine.fireTimer(FlowNodes.EventWithdrawalPeriodElapsed)
 
         assertThat(instance)
             .isEnded
             .hasPassedInOrder(
-                Elements.SERVICE_TASK_VALIDATE_APPLICATION.value,
-                Elements.BUSINESS_RULE_TASK_CHECK_CREDIT_RATING.value,
-                Elements.SERVICE_TASK_SEND_CONTRACT.value,
-                Elements.SERVICE_TASK_ISSUE_INSURANCE_POLICY.value,
-                Elements.EVENT_HANDOVER_REPORTED.value,
-                Elements.END_EVENT_LEASING_ACTIVE.value,
+                pathUntilContractSigned()
+                    .then { it.gatewayFork }
+                    .then { it.serviceTaskIssueInsurancePolicy }
+                    .then { it.gatewayJoin }
+                    .then { it.eventHandoverReported }
+                    .then { it.eventWithdrawalPeriodElapsed }
+                    .then { it.endEventLeasingActive },
+            )
+            .hasPassedInOrder(
+                ProcessPath.from(FlowNodes.GatewayFork)
+                    .then { it.gatewayBikeSourceJoin }
+                    .then { it.serviceTaskOrderBike }
+                    .then { it.gatewayBikeAvailable }
+                    .then { it.gatewayJoin },
             )
             .hasNotPassed(
-                Elements.END_EVENT_APPLICATION_REJECTED.value,
-                Elements.END_EVENT_APPLICATION_CANCELLED.value,
-                Elements.END_EVENT_CONTRACT_CANCELLED.value,
+                FlowNodes.EndEventApplicationRejected.ELEMENT_ID,
+                FlowNodes.EndEventApplicationCancelled.ELEMENT_ID,
+                FlowNodes.EndEventContractCancelled.ELEMENT_ID,
             )
 
         verify(exactly = 1) { sendContractUseCase.sendContract(id) }
@@ -147,22 +164,25 @@ class BikeLeasingProcessTest {
         val instance = runtimeService.findProcessInstance(id)
 
         // async continuations up to the contract-signature wait state
-        processEngine.executeJobFor(Elements.START_EVENT_LEASING_REQUEST_RECEIVED)
-        processEngine.executeJobFor(Elements.SERVICE_TASK_VALIDATE_APPLICATION)
-        processEngine.executeJobFor(Elements.SERVICE_TASK_SEND_CONTRACT)
+        processEngine.executeJobFor(FlowNodes.StartEventLeasingRequestReceived)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskValidateApplication)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskSendContract)
 
-        processEngine.fireTimer(Elements.EVENT_SIGNATURE_DEADLINE) // deadline -> escalation -> rejection
-        processEngine.executeJobFor(Elements.SERVICE_TASK_SEND_REJECTION)
+        processEngine.fireTimer(FlowNodes.EventSignatureDeadline) // deadline -> escalation -> rejection
+        processEngine.executeJobFor(FlowNodes.ServiceTaskSendRejection)
 
         assertThat(instance)
             .isEnded
-            .hasPassed(
-                Elements.EVENT_SIGNATURE_DEADLINE.value,
-                Elements.EVENT_CONTRACT_NOT_SIGNED.value,
-                Elements.SERVICE_TASK_SEND_REJECTION.value,
-                Elements.END_EVENT_APPLICATION_REJECTED.value,
+            .hasPassedInOrder(
+                pathUntilSignatureAwaited()
+                    .then { it.eventSignatureDeadline }
+                    .then { it.endEventNotSigned }
+                    .interruptedBy(FlowNodes.SubProcessConcludeContract) { it.eventContractNotSigned }
+                    .then { it.gatewayRejectionJoin }
+                    .then { it.serviceTaskSendRejection }
+                    .then { it.endEventApplicationRejected },
             )
-            .hasNotPassed(Elements.END_EVENT_LEASING_ACTIVE.value)
+            .hasNotPassed(FlowNodes.EndEventLeasingActive.ELEMENT_ID)
 
         verify(exactly = 1) { rejectApplicationUseCase.reject(id) }
     }
@@ -171,10 +191,21 @@ class BikeLeasingProcessTest {
     fun `not solvent - the DMN routes the application straight to rejection`() {
         // age below 18 cannot sign a leasing contract, so the DMN returns solvent = false
         val id = submit(age = 15, income = 3500.0)
+        val instance = runtimeService.findProcessInstance(id)
 
-        processEngine.executeJobFor(Elements.START_EVENT_LEASING_REQUEST_RECEIVED)
-        processEngine.executeJobFor(Elements.SERVICE_TASK_VALIDATE_APPLICATION) // -> DMN -> not solvent -> rejection
-        processEngine.executeJobFor(Elements.SERVICE_TASK_SEND_REJECTION)
+        processEngine.executeJobFor(FlowNodes.StartEventLeasingRequestReceived)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskValidateApplication) // -> DMN -> not solvent -> rejection
+        processEngine.executeJobFor(FlowNodes.ServiceTaskSendRejection)
+
+        assertThat(instance)
+            .isEnded
+            .hasPassedInOrder(
+                pathUntilCreditRatingChecked()
+                    .then { it.gatewayRejectionJoin }
+                    .then { it.serviceTaskSendRejection }
+                    .then { it.endEventApplicationRejected },
+            )
+            .hasNotPassed(FlowNodes.SubProcessConcludeContract.ELEMENT_ID)
 
         verify(exactly = 1) { rejectApplicationUseCase.reject(id) }
         verify(exactly = 0) { sendContractUseCase.sendContract(any()) }
@@ -188,13 +219,13 @@ class BikeLeasingProcessTest {
         val instance = runtimeService.findProcessInstance(id)
 
         // async continuations up to the handover wait state (contract signed, bike ordered, insured)
-        processEngine.executeJobFor(Elements.START_EVENT_LEASING_REQUEST_RECEIVED)
-        processEngine.executeJobFor(Elements.SERVICE_TASK_VALIDATE_APPLICATION)
-        processEngine.executeJobFor(Elements.SERVICE_TASK_SEND_CONTRACT)
+        processEngine.executeJobFor(FlowNodes.StartEventLeasingRequestReceived)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskValidateApplication)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskSendContract)
         process.correlateContractSigned(id)
-        processEngine.executeJobFor(Elements.EVENT_CONTRACT_SIGNED)
-        processEngine.executeJobFor(Elements.SERVICE_TASK_ISSUE_INSURANCE_POLICY)
-        processEngine.executeJobFor(Elements.SERVICE_TASK_ORDER_BIKE)
+        processEngine.executeJobFor(FlowNodes.EventContractSigned)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskIssueInsurancePolicy)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskOrderBike)
 
         // Withdrawing triggers compensation. Its handlers run in an engine-defined order, so drive
         // the continuations generically until the cancelBikeOrder sub-process parks on its user task.
@@ -204,7 +235,7 @@ class BikeLeasingProcessTest {
         val task =
             taskService
                 .createTaskQuery()
-                .taskDefinitionKey(CancelBikeOrderProcessApi.Elements.USER_TASK_CLARIFY_RETURN.value)
+                .taskDefinitionKey(CancelBikeOrderProcessApi.FlowNodes.UserTaskClarifyReturn.ELEMENT_ID)
                 .singleResult()
         taskService.complete(task.id, mapOf("returnClarified" to true))
         processEngine.continueToNextWaitState()
@@ -212,13 +243,15 @@ class BikeLeasingProcessTest {
         assertThat(instance)
             .isEnded
             .hasPassed(
-                Elements.SERVICE_TASK_CANCEL_CONTRACT.value,
-                Elements.SERVICE_TASK_CANCEL_POLICY.value,
-                Elements.CALL_ACTIVITY_CANCEL_BIKE_ORDER.value,
-                Elements.SERVICE_TASK_SEND_CANCELLATION_CONFIRMATION.value,
-                Elements.END_EVENT_APPLICATION_CANCELLED.value,
+                ProcessPath.from(FlowNodes.StartEventApplicationWithdrawn)
+                    .then { it.eventReverseApplication }
+                    .throwingCompensation(FlowNodes.EventCompensateContract) { it.serviceTaskCancelContract }
+                    .throwingCompensation(FlowNodes.EventCompensateInsurance) { it.serviceTaskCancelPolicy }
+                    .throwingCompensation(FlowNodes.EventCompensateOrder) { it.callActivityCancelBikeOrder }
+                    .then { it.serviceTaskSendCancellationConfirmation }
+                    .then { it.endEventApplicationCancelled },
             )
-            .hasNotPassed(Elements.END_EVENT_LEASING_ACTIVE.value)
+            .hasNotPassed(FlowNodes.EndEventLeasingActive.ELEMENT_ID)
 
         verify(exactly = 1) { cancelContractUseCase.cancelContract(id) }
         verify(exactly = 1) { cancelInsurancePolicyUseCase.cancelPolicy(id) }
@@ -238,37 +271,71 @@ class BikeLeasingProcessTest {
         val instance = runtimeService.findProcessInstance(id)
 
         // async continuations up to the contract-signature wait state, then fork into insurance + bike order
-        processEngine.executeJobFor(Elements.START_EVENT_LEASING_REQUEST_RECEIVED)
-        processEngine.executeJobFor(Elements.SERVICE_TASK_VALIDATE_APPLICATION)
-        processEngine.executeJobFor(Elements.SERVICE_TASK_SEND_CONTRACT)
+        processEngine.executeJobFor(FlowNodes.StartEventLeasingRequestReceived)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskValidateApplication)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskSendContract)
         process.correlateContractSigned(id)
-        processEngine.executeJobFor(Elements.EVENT_CONTRACT_SIGNED)
-        processEngine.executeJobFor(Elements.SERVICE_TASK_ISSUE_INSURANCE_POLICY)
-        processEngine.executeJobFor(Elements.SERVICE_TASK_ORDER_BIKE) // unavailable -> parks on the clarify-alternative user task
+        processEngine.executeJobFor(FlowNodes.EventContractSigned)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskIssueInsurancePolicy)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskOrderBike) // unavailable -> parks on the clarify-alternative user task
 
         // the alternative is clarified from the outside — the "external" completion of the user task
         process.completeAlternativeClarification(id, alternativeFound = true, bikeId = BikeId("BIKE-ALT"))
         processEngine.continueToNextWaitState() // re-order succeeds -> parallel join -> handover wait state
 
         process.correlateHandoverReported(id)
-        processEngine.executeJobFor(Elements.EVENT_HANDOVER_REPORTED)
-        processEngine.fireTimer(Elements.EVENT_WITHDRAWAL_PERIOD_ELAPSED)
+        processEngine.executeJobFor(FlowNodes.EventHandoverReported)
+        processEngine.fireTimer(FlowNodes.EventWithdrawalPeriodElapsed)
 
         assertThat(instance)
             .isEnded
-            .hasPassed(
-                Elements.USER_TASK_CLARIFY_ALTERNATIVE.value,
-                Elements.SERVICE_TASK_ORDER_BIKE.value,
-                Elements.END_EVENT_LEASING_ACTIVE.value,
+            .hasPassedInOrder(
+                ProcessPath.from(FlowNodes.GatewayFork)
+                    .then { it.gatewayBikeSourceJoin }
+                    .then { it.serviceTaskOrderBike }
+                    .then { it.gatewayBikeAvailable }
+                    .then { it.userTaskClarifyAlternative }
+                    .then { it.gatewayAlternativeFound }
+                    .then { it.gatewayBikeSourceJoin }
+                    .then { it.serviceTaskOrderBike }
+                    .then { it.gatewayBikeAvailable }
+                    .then { it.gatewayJoin }
+                    .then { it.eventHandoverReported }
+                    .then { it.eventWithdrawalPeriodElapsed }
+                    .then { it.endEventLeasingActive },
             )
             .hasNotPassed(
-                Elements.END_EVENT_CONTRACT_CANCELLED.value,
-                Elements.END_EVENT_APPLICATION_REJECTED.value,
+                FlowNodes.EndEventContractCancelled.ELEMENT_ID,
+                FlowNodes.EndEventApplicationRejected.ELEMENT_ID,
             )
 
         verify(exactly = 2) { orderBikeUseCase.orderBike(id) }
         verify(exactly = 1) { activateLeasingUseCase.activate(id) }
     }
+
+    private fun pathUntilCreditRatingChecked() =
+        ProcessPath.from(FlowNodes.StartEventLeasingRequestReceived)
+            .then { it.serviceTaskValidateApplication }
+            .then { it.businessRuleTaskCheckCreditRating }
+            .then { it.gatewayIsSolvent }
+
+    private fun pathUntilSignatureAwaited() =
+        pathUntilCreditRatingChecked()
+            .onto { it.subProcessConcludeContract }
+            .enter { it.startEventCustomerEligible }
+            .then { it.serviceTaskSendContract }
+            .then { it.gatewayAwaitSignature }
+
+    private fun pathUntilContractSigned() =
+        pathUntilCreditRatingChecked()
+            .onto { it.subProcessConcludeContract }
+            .inside {
+                enter { it.startEventCustomerEligible }
+                    .then { it.serviceTaskSendContract }
+                    .then { it.gatewayAwaitSignature }
+                    .then { it.eventContractSigned }
+                    .then { it.endEventContractValid }
+            }
 
     private fun submit(age: Int, income: Double, bikeId: String = "BIKE-TEST"): ApplicationId {
         val application =

@@ -16,9 +16,9 @@ Spring Boot — one complete, runnable, production-shaped BPMN service.
 | **Stack** | Kotlin 2.4 · Gradle | Java 21 · Maven |
 | **Choose it when** | you are free to choose — **our recommendation for a modern stack** | Java + Maven is your team's or company's standard, or you are in a training |
 
-Both run the same process, expose the same REST contract and pass the same end-to-end scenarios. They
-share the BPMN/DMN models, forms and database schema in [`shared/`](shared/README.md), so
-only the implementation language and the build tool differ. Building on one?
+Both run the same process, expose the same REST contract and pass the same end-to-end scenarios. Each
+directory is self-contained — build, code, process models and schema — and CI keeps the models and
+configuration of the two identical, so only the language and the build tool differ. Building on one?
 [Turn the repo into a single-stack starter](docs/starter.md) with one command.
 <!-- /variant:blueprint -->
 
@@ -67,15 +67,12 @@ cd bruno && npx --yes @usebruno/cli@4.0.0 run . --env local -r
 
 ## What's where
 
-<!-- variant:kotlin-gradle layout:shared -->
+<!-- variant:kotlin-gradle variant:nested -->
 - [`kotlin-gradle/`](kotlin-gradle/README.md) — the service in Kotlin + Gradle, its build and quality gates
 <!-- /variant:kotlin-gradle -->
-<!-- variant:java-maven layout:shared -->
+<!-- variant:java-maven variant:nested -->
 - [`java-maven/`](java-maven/README.md) — the service in Java 21 + Maven, its build and quality gates
 <!-- /variant:java-maven -->
-<!-- layout:shared -->
-- [`shared/`](shared/README.md) — the BPMN + DMN models, Camunda Forms and Flyway migrations
-<!-- /layout:shared -->
 
 - [`openapi/`](openapi/openapi.json) — the checked-in, drift-gated OpenAPI contract
 - [`bruno/`](bruno/README.md) — the REST scenarios, the two ways to complete a user task, the incident demo

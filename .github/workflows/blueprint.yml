@@ -1,7 +1,6 @@
-name: Starter Checks
+name: Blueprint Checks
 
-# scripts/create-starter.sh rewrites paths when it flattens the repo into a single-stack starter. Build
-# both flat starters so a newly introduced path the script does not know cannot break it unnoticed.
+# Checks that only make sense while both variants live side by side; a starter does not carry them.
 on:
   pull_request:
     branches: [ main ]
@@ -11,6 +10,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Each variant carries its own copy of the process models, forms, migrations and configuration so it
+  # stays self-contained. The copies must not drift apart. See docs/adr/0013.
+  identical-resources:
+    name: Both variants ship identical resources
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Compare the resources of both variants
+        run: diff -r kotlin-gradle/service/app/src/main/resources java-maven/service/app/src/main/resources
+
+  # scripts/create-starter.sh rewrites paths when it flattens the repo into a single-stack starter.
+  # Build both flat starters so a newly introduced path the script does not know cannot break it.
   flat-starter:
     name: Flat starter builds (${{ matrix.variant }})
     runs-on: ubuntu-latest
@@ -55,4 +68,4 @@ jobs:
 
       - name: Verify no marker and no path of the blueprint layout is left
         run: |
-          ! git grep -n -E '(variant|layout):|${{ matrix.variant }}/|shared/' -- ':!docs/adr' ':!package-lock.json' ':!*.kt' ':!*.java'
+          ! git grep -n -E '(#|<!--) /?variant:|${{ matrix.variant }}/' -- ':!docs/adr' ':!package-lock.json'

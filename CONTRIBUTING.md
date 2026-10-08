@@ -133,7 +133,7 @@ The build, mutation-testing and code-generation commands are listed in the READM
 From the repo root:
 
 ```bash
-npm run lint:bpmn        # bpmnlint the .bpmn models in shared/bpmn
+npm run lint:bpmn        # bpmnlint the .bpmn models
 ```
 
 ## Ground rules
@@ -149,7 +149,8 @@ npm run lint:bpmn        # bpmnlint the .bpmn models in shared/bpmn
 <!-- variant:blueprint -->
 - **Change both variants together.** A change in behaviour goes into `kotlin-gradle/` *and*
   `java-maven/` in the same PR, with equivalent tests. Changes that only concern one language's idioms
-  stay on that side. See
+  stay on that side. Models, forms, migrations and `application.yaml` exist in both variants and must
+  be byte-identical — copy your change over; the `Blueprint Checks` workflow fails otherwise. See
   [ADR-0013](docs/adr/0013-two-stack-variants-side-by-side-on-main.md).
 <!-- /variant:blueprint -->
 
@@ -161,10 +162,10 @@ npm run lint:bpmn        # bpmnlint the .bpmn models in shared/bpmn
   Mutation testing means a test that runs without asserting will fail CI.
 - **Changing the API?** Re-export the spec (the `OpenApiSpecExportTest`, which every full build runs)
   so the committed `openapi/openapi.json` contract stays in sync — it is **drift-gated in CI**.
-- **Changing the process?** Edit the `.bpmn` model in `shared/bpmn`, regenerate the typed `*ProcessApi`,
-  and lint it with `npm run lint:bpmn`.
+- **Changing the process?** Edit the `.bpmn` model under `service/app/src/main/resources/bpmn`,
+  regenerate the typed `*ProcessApi`, and lint it with `npm run lint:bpmn`.
 - **Changing the database schema?** Flyway owns it. Add a new forward-only migration
-  `V{n}__description.sql` under `shared/db/migration/` in the same change as
+  `V{n}__description.sql` under `service/app/src/main/resources/db/migration/` in the same change as
   the entity edit — never edit an already-applied migration. Hibernate runs `validate`, so a mismatch
   fails startup. A dev database first created by the old `ddl-auto: create` has no Flyway history;
   reset it once with `docker compose -f stack/docker-compose.yml down -v` before running. See

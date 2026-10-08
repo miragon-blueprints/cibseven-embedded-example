@@ -13,8 +13,10 @@ over REST, and the CIB seven webapps (Cockpit / Tasklist) handle any human-in-th
   expression, **not** Zeebe workers). Package root `io.miragon.blueprint`.
 <!-- variant:blueprint -->
 - **Two equivalent variants on `main`** — `kotlin-gradle/` (Kotlin, **the recommended stack**) and
-  `java-maven/` (Java 21, for teams bound to it and for trainings). They share the models in `shared/`
-  and must stay functionally identical: **make every change in behaviour in both variants in the same
+  `java-maven/` (Java 21, for teams bound to it and for trainings). Each is self-contained and
+  carries its own copy of the process models, forms, migrations and `application.yaml`; the
+  `Blueprint Checks` workflow fails when the two `src/main/resources` trees differ, so **edit a model in
+  one variant and copy it to the other**. The variants must stay functionally identical: **make every change in behaviour in both variants in the same
   PR.** Changes that only concern one language's idioms stay on that side. See
   [ADR-0013](docs/adr/0013-two-stack-variants-side-by-side-on-main.md). The OpenAPI contract below is
   drift-gated against **both** variants.
@@ -30,10 +32,10 @@ over REST, and the CIB seven webapps (Cockpit / Tasklist) handle any human-in-th
 
 ## Repository Map
 
-<!-- variant:kotlin-gradle layout:shared -->
+<!-- variant:kotlin-gradle variant:nested -->
 - `kotlin-gradle/` — the service in Kotlin, built with Gradle
 <!-- /variant:kotlin-gradle -->
-<!-- variant:java-maven layout:shared -->
+<!-- variant:java-maven variant:nested -->
 - `java-maven/` — the service in Java 21, built with Maven
 <!-- /variant:java-maven -->
 
@@ -51,17 +53,9 @@ service/
     adapter/process             generated *ProcessApi (bpmn-to-code) + engine config
     application/{port,service}  use-case ports and their services
     domain/{leasing,bike}       pure domain model
+    resources/{bpmn,dmn,forms}  the process models and Camunda Forms
+    resources/db/migration      Flyway versioned schema migrations
 ```
-
-<!-- layout:shared -->
-The process assets, mounted by the build as a resource root:
-
-```
-shared/
-  {bpmn,dmn,forms}              the process models and Camunda Forms
-  db/migration                  Flyway versioned schema migrations
-```
-<!-- /layout:shared -->
 
 Around it:
 
@@ -153,8 +147,8 @@ hard rules:
   OpenAPI, error handling) goes in `adapter.inbound.rest` — the `Configuration` suffix is whitelisted
   there.
 - **`adapter/process` is generated.** Never hand-edit `*ProcessApi` or the shared
-  `ServiceTasks`/`Messages`/`ProcessVariables`/`Errors`/`Escalations` files; edit the `.bpmn` in
-  `shared/bpmn` and regenerate.
+  `ServiceTasks`/`Messages`/`ProcessVariables`/`Errors`/`Escalations` files; edit the `.bpmn` and
+  regenerate.
 - **Suffixes:** inbound port `UseCase|Query`; outbound `Port|Repository|Process`; service
   `Service|Configuration`; `adapter.inbound.rest` `Controller|Dto|Input|Mapper|Configuration`;
   `adapter.inbound.cibseven` `Delegate|Worker|Listener`; `adapter.outbound`

@@ -20,17 +20,6 @@ springBoot {
     buildInfo()
 }
 
-val processAssets = rootDir.resolveSibling("shared")
-
-// layout:shared
-sourceSets.main {
-    resources {
-        srcDir(processAssets)
-        exclude("README.md")
-    }
-}
-// /layout:shared
-
 configurations.all {
     exclude(group = "org.cibseven.webapp", module = "cibseven-webclient-web")
 }
@@ -49,8 +38,8 @@ dependencies {
 }
 
 tasks.register<GenerateBpmnModelsTask>("generateBpmnModels") {
-    baseDir = processAssets.toString()
-    filePattern = "bpmn/*.bpmn"
+    baseDir = projectDir.toString()
+    filePattern = "src/main/resources/bpmn/*.bpmn"
     outputFolderPath = "$projectDir/src/main/kotlin"
     packagePath = "io.miragon.blueprint.adapter.process"
     outputLanguage = OutputLanguage.KOTLIN

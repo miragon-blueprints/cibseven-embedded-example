@@ -31,19 +31,21 @@ Kotlin + Gradle** as the default for new projects.
 
 - `kotlin-gradle/` and `java-maven/` each hold a complete build (wrapper included) of the same
   hexagonal service. Neither depends on the other, so a fork deletes the one it does not need.
-- `shared/` is the **single source** of the process assets: BPMN, DMN, forms and Flyway migrations.
-  Both builds mount it as a resource root. Application configuration stays in each variant's own
-  `src/main/resources`, where a Spring Boot developer expects it.
+- Each variant carries its **own copy** of the language-neutral resources — BPMN, DMN, forms, Flyway
+  migrations and `application.yaml` — in `service/app/src/main/resources`, where a Spring Boot developer
+  expects them. A shared directory mounted by both builds was considered and rejected: it would make
+  neither variant usable on its own.
 - `openapi/openapi.json`, `bruno/` and `stack/` exist once and apply to both.
 - A change to the service is made in **both variants in the same pull request**.
 
-Three gates make drift visible on every pull request:
+Four gates make drift visible on every pull request:
 
 | Gate | What it proves |
 |---|---|
 | Build, architecture tests and PIT (gate 80) per variant | each variant is correct and tested on its own |
 | One OpenAPI contract, drift-gated against both | both expose exactly the same REST API |
 | The Bruno collection against both running variants | both behave the same in the end-to-end scenarios |
+| `diff -r` over the two `src/main/resources` trees | both deploy the same models, schema and configuration |
 
 Dependabot updates Gradle and Maven in the same `backend` group, so both builds move to the same
 versions in one pull request.
@@ -55,10 +57,10 @@ alone; such a gate would mostly produce noise. The gates compare observable beha
 ## Consequences
 
 - **Positive:** the Java variant has CI, dependency updates and the automated dependency repair like
-  everything else on `main`. Model drift is structurally impossible. Trainings use a plain directory
+  everything else on `main`. Each variant is a complete project on its own. Trainings use a plain directory
   instead of a tag checkout.
 - **Negative / trade-offs:** every functional change is implemented and reviewed twice, and pull
-  requests grow. `main` is no longer a pure Kotlin tree, which makes it less directly comparable to
+  requests grow. A model change has to be copied to the other variant. `main` is no longer a pure Kotlin tree, which makes it less directly comparable to
   sibling blueprints until they adopt the same layout.
 - **Neutral:** the gates compare the contract and the scripted scenarios. Behaviour covered by neither
   can still differ, which is why the unit and process tests of both variants are kept case-for-case

@@ -12,6 +12,8 @@ import io.mockk.every
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.http.MediaType
@@ -66,6 +68,33 @@ class SubmitLeasingRequestControllerTest {
         assertThat(response.response.status).isEqualTo(200)
         assertThat(response.response.contentAsString).contains(applicationId.value.toString())
         verify { useCase.submit(expectedCommand) }
+        confirmVerified(useCase)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["customerName", "email", "bikeId", "bikeModel"])
+    fun `a request without a required text field is rejected`(missingField: String) {
+
+        // given: an otherwise valid request that lacks one required field
+        val input =
+            mapOf(
+                "customerName" to "John Doe",
+                "email" to "john.doe@test.com",
+                "age" to 35,
+                "monthlyNetIncome" to 3500.0,
+                "bikeId" to "BIKE-900",
+                "bikeModel" to "Gravel Explorer 900",
+            ) - missingField
+        val operation =
+            post("/api/bike-leasing")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(input))
+
+        // when: the request is performed
+        val response = mockMvc.perform(operation).andReturn()
+
+        // then: it is a bad request and never reaches the use case
+        assertThat(response.response.status).isEqualTo(400)
         confirmVerified(useCase)
     }
 }

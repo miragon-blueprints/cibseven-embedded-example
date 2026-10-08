@@ -9,6 +9,7 @@ import io.miragon.blueprint.domain.leasing.CustomerName;
 import io.miragon.blueprint.domain.leasing.Email;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -54,6 +55,13 @@ public class SubmitLeasingRequestController {
             @Schema(requiredMode = REQUIRED) double monthlyNetIncome,
             @Schema(requiredMode = REQUIRED) String bikeId,
             @Schema(requiredMode = REQUIRED) String bikeModel) {
+
+        public LeasingRequestInput {
+            Objects.requireNonNull(customerName, "customerName");
+            Objects.requireNonNull(email, "email");
+            Objects.requireNonNull(bikeId, "bikeId");
+            Objects.requireNonNull(bikeModel, "bikeModel");
+        }
     }
 
     public record LeasingApplicationCreatedDto(@Schema(requiredMode = REQUIRED) String applicationId) {

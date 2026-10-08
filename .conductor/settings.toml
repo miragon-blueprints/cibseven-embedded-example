@@ -27,15 +27,28 @@ archive = "docker compose -f stack/docker-compose.yml down -v || true"
 command = "docker compose -f stack/docker-compose.yml up"
 icon = "database"
 
-# The Spring Boot application (embedded CIB seven engine).
-[scripts.run.backend]
-command = "./gradlew :service:app:bootRun"
+# The Spring Boot application (embedded CIB seven engine), and its full verification:
+# arch + unit + process + model-validation + OpenAPI spec export.
+
+# variant:kotlin-gradle
+[scripts.run.backend-kotlin]
+command = "cd kotlin-gradle && ./gradlew :service:app:bootRun"
 icon = "play"
 
-# Full verification: arch + unit + process + model-validation + OpenAPI spec export.
-[scripts.run.test]
-command = "./gradlew build"
+[scripts.run.test-kotlin]
+command = "cd kotlin-gradle && ./gradlew build"
 icon = "check"
+# /variant:kotlin-gradle
+
+# variant:java-maven
+[scripts.run.backend-java]
+command = "cd java-maven && ./mvnw -DskipTests install && ./mvnw -pl service/app spring-boot:run"
+icon = "play"
+
+[scripts.run.test-java]
+command = "cd java-maven && ./mvnw verify"
+icon = "check"
+# /variant:java-maven
 
 # Bruno API smoke tests against a running local stack.
 [scripts.run.smoke]

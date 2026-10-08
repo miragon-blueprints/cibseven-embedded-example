@@ -3,7 +3,13 @@ name: Dependency repair
 # Lets Claude shepherd a red Dependabot pull request back to green. It never merges.
 on:
   workflow_run:
-    workflows: [ "Pre-Merge Checks" ]
+    workflows:
+      # variant:kotlin-gradle
+      - "Pre-Merge Checks · Kotlin/Gradle"
+      # /variant:kotlin-gradle
+      # variant:java-maven
+      - "Pre-Merge Checks · Java/Maven"
+      # /variant:java-maven
     types: [ completed ]
 
 concurrency:
@@ -51,8 +57,10 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      # variant:kotlin-gradle
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+      # /variant:kotlin-gradle
 
       # Auto-merge is armed when Dependabot opens the pull request; a repaired one waits for a human.
       - name: Switch auto-merge off

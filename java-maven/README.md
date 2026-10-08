@@ -10,7 +10,7 @@ or Gradle knowledge.
 > we recommend when you are free to choose. Same process, same REST contract, same scenarios.
 <!-- /variant:blueprint -->
 
-## Commands
+## 🧰 Commands
 
 Run them from this directory; the Maven wrapper is included. Postgres comes from
 `docker compose -f ../stack/docker-compose.yml up -d`.
@@ -23,7 +23,7 @@ Run them from this directory; the Maven wrapper is included. Postgres comes from
 | Regenerate the typed process API after editing a `.bpmn` | `./mvnw -pl service/app generate-sources` |
 | Build the OCI image | `./mvnw -pl service/app -am -DskipTests spring-boot:build-image` |
 
-## Layout
+## 📂 Layout
 
 ```
 pom.xml                        parent: all versions and plugin management
@@ -47,7 +47,7 @@ service/
 The resources are kept identical to the other variant's; CI fails when they differ.
 <!-- /variant:blueprint -->
 
-## How it is built
+## 🧱 How it is built
 
 - **Hexagonal architecture.** Domain and use cases never depend on CIB seven. `common-architecture-tests`
   enforces layering, dependency direction and naming with **ArchUnit**; **Checkstyle** adds the two
@@ -64,7 +64,7 @@ The resources are kept identical to the other variant's; CI fails when they diff
   CI fails on drift.
 
 <!-- variant:blueprint -->
-## What differs from the Kotlin variant
+## 🔀 What differs from the Kotlin variant
 
 Only idioms: **records** and `Optional` instead of `data` classes and nullable types, **Mockito** instead
 of MockK, **SLF4J** instead of kotlin-logging, **Checkstyle** instead of Konsist. Records carry no

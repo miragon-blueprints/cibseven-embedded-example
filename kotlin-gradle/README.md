@@ -11,7 +11,7 @@ catalog, on Spring Boot 4 and an embedded CIB seven 2.2 engine.
 > [Java + Maven variant](../java-maven/README.md) is functionally identical for teams bound to that stack.
 <!-- /variant:blueprint -->
 
-## Commands
+## 🧰 Commands
 
 Run them from this directory. Postgres comes from `docker compose -f ../stack/docker-compose.yml up -d`.
 
@@ -23,7 +23,7 @@ Run them from this directory. Postgres comes from `docker compose -f ../stack/do
 | Regenerate the typed process API after editing a `.bpmn` | `./gradlew generateBpmnModels` |
 | Build the OCI image | `./gradlew :service:app:bootBuildImage` |
 
-## Layout
+## 📂 Layout
 
 ```
 service/
@@ -45,7 +45,7 @@ service/
 The resources are kept identical to the other variant's; CI fails when they differ.
 <!-- /variant:blueprint -->
 
-## How it is built
+## 🧱 How it is built
 
 - **Hexagonal architecture.** Domain and use cases never depend on CIB seven, so the business logic is
   testable and the engine replaceable. `common-architecture-tests` enforces it with **ArchUnit**

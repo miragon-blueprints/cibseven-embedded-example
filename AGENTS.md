@@ -11,7 +11,7 @@ over REST, and the CIB seven webapps (Cockpit / Tasklist) handle any human-in-th
 
 - **Backend** — Spring Boot 4, hexagonal, CIB seven 2.2 embedded engine (JavaDelegates invoked by
   expression, **not** Zeebe workers). Package root `io.miragon.blueprint`.
-<!-- variant:blueprint -->
+  <!-- variant:blueprint -->
 - **Two equivalent variants on `main`** — `kotlin-gradle/` (Kotlin, **the recommended stack**) and
   `java-maven/` (Java 21, for teams bound to it and for trainings). Each is self-contained and
   carries its own copy of the process models, forms, migrations and `application.yaml`; the
@@ -23,8 +23,7 @@ over REST, and the CIB seven webapps (Cockpit / Tasklist) handle any human-in-th
   Stack-specific content in shared files (docs, Dependabot, Conductor settings) is wrapped in
   `variant:<name>` markers so `scripts/create-starter.sh` can strip it — see
   [docs/starter.md](docs/starter.md).
-<!-- /variant:blueprint -->
-
+  <!-- /variant:blueprint -->
 - **The contract** is `openapi/openapi.json`: springdoc generates it from the controllers, it is
   **committed and drift-gated** in CI. It is the published contract for any
   REST consumer — a backend REST change that isn't re-exported fails the drift gate. See
@@ -34,10 +33,10 @@ over REST, and the CIB seven webapps (Cockpit / Tasklist) handle any human-in-th
 
 <!-- variant:kotlin-gradle variant:nested -->
 - `kotlin-gradle/` — the service in Kotlin, built with Gradle
-<!-- /variant:kotlin-gradle -->
-<!-- variant:java-maven variant:nested -->
+  <!-- /variant:kotlin-gradle -->
+  <!-- variant:java-maven variant:nested -->
 - `java-maven/` — the service in Java 21, built with Maven
-<!-- /variant:java-maven -->
+  <!-- /variant:java-maven -->
 
 The service:
 
@@ -193,14 +192,14 @@ In `kotlin-gradle/`:
 
 - Backend service/controller: `./gradlew :service:app:test --tests "*<Name>Test"`
 - Architecture only: `./gradlew :service:app:test --tests "io.miragon.blueprint.architecture.*"`
-<!-- /variant:kotlin-gradle -->
+  <!-- /variant:kotlin-gradle -->
 
 <!-- variant:java-maven -->
 In `java-maven/`:
 
 - Backend service/controller: `./mvnw -pl service/app -am test -Dtest="<Name>Test" -Dsurefire.failIfNoSpecifiedTests=false`
 - Architecture only: `./mvnw -pl service/app -am test -Dtest="ArchitectureTest" -Dsurefire.failIfNoSpecifiedTests=false`
-<!-- /variant:java-maven -->
+  <!-- /variant:java-maven -->
 
 From the repo root:
 

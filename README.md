@@ -9,7 +9,7 @@ A ready-to-fork **starting point** for automating a business process on
 Spring Boot — one complete, runnable, production-shaped BPMN service.
 
 <!-- variant:blueprint -->
-## Pick your stack
+## 🧭 Pick your stack
 
 | | [`kotlin-gradle/`](kotlin-gradle/README.md) | [`java-maven/`](java-maven/README.md) |
 |---|---|---|
@@ -22,7 +22,7 @@ configuration of the two identical, so only the language and the build tool diff
 [Turn the repo into a single-stack starter](docs/starter.md) with one command.
 <!-- /variant:blueprint -->
 
-## The scenario
+## 🚲 The scenario
 
 **MiraVelo** is a (fictional) bike brand that sells on a **leasing model**. This service automates a
 leasing application from the first request to an active lease — and deliberately walks through the
@@ -37,49 +37,59 @@ leasing application from the first request to an active lease — and deliberate
 - **compensation / SAGA** handlers guarded by **error** and **escalation** boundary events
 - **call activity**, **message event sub-process** (withdrawal) and a **terminate end event**
 
-## Run it
+## 🚀 Run it
 
 You need **JDK 21** and **Docker** (or Podman).
 
-Start Postgres, then the service on :8080:
+**1. Start Postgres**
 
 ```bash
 docker compose -f stack/docker-compose.yml up -d
 ```
+
+**2. Start the service** on :8080
 
 <!-- variant:kotlin-gradle -->
 ```bash
 cd kotlin-gradle && ./gradlew :service:app:bootRun
 ```
 <!-- /variant:kotlin-gradle -->
+<!-- variant:blueprint -->
+or
+<!-- /variant:blueprint -->
 <!-- variant:java-maven -->
 ```bash
 cd java-maven && ./mvnw -DskipTests install && ./mvnw -pl service/app spring-boot:run
 ```
 <!-- /variant:java-maven -->
 
-Then open the Cockpit / Tasklist at <http://localhost:8080/camunda> (admin/admin) or the Swagger UI at
-<http://localhost:8080/swagger-ui.html>, and drive the whole process over REST:
+**3. Use it** — open the Cockpit / Tasklist at <http://localhost:8080/camunda> (admin/admin) or the
+Swagger UI at <http://localhost:8080/swagger-ui.html>, or drive the whole process over REST:
 
 ```bash
 cd bruno && npx --yes @usebruno/cli@4.0.0 run . --env local -r
 ```
 
-## What's where
+## 📂 What's where
 
 <!-- variant:kotlin-gradle variant:nested -->
 - [`kotlin-gradle/`](kotlin-gradle/README.md) — the service in Kotlin + Gradle, its build and quality gates
-<!-- /variant:kotlin-gradle -->
-<!-- variant:java-maven variant:nested -->
+  <!-- /variant:kotlin-gradle -->
+  <!-- variant:java-maven variant:nested -->
 - [`java-maven/`](java-maven/README.md) — the service in Java 21 + Maven, its build and quality gates
-<!-- /variant:java-maven -->
-
+  <!-- /variant:java-maven -->
 - [`openapi/`](openapi/openapi.json) — the checked-in, drift-gated OpenAPI contract
 - [`bruno/`](bruno/README.md) — the REST scenarios, the two ways to complete a user task, the incident demo
 - [`stack/`](stack/docker-compose.yml) — the Postgres dev stack
 - [`docs/`](docs/README.md) — the Architecture Decision Records: why the repo is shaped this way
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — setup, ports, containers and the PR workflow
 
-## License
+## 🤝 Contributing
+
+Contributions are welcome. Open an issue before a substantial change, keep the CI gates green and use
+[Conventional Commits](https://www.conventionalcommits.org). The details are in
+[`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+## 📄 License
 
 Licensed under the [MIT License](./LICENSE).

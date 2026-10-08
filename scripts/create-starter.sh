@@ -58,10 +58,10 @@ append_the_variant_readme_to_the_root_readme() {
   local merged
   merged=$(mktemp)
   {
-    sed '/^## License/,$d' README.md
+    sed '/^## .*Contributing/,$d' README.md
     sed -e '1,/^## /{/^## /!d;}' -e 's|\.\./||g' "$kept/README.md"
     echo
-    sed -n '/^## License/,$p' README.md
+    sed -n '/^## .*Contributing/,$p' README.md
   } > "$merged"
   cat "$merged" > README.md
   rm "$merged"

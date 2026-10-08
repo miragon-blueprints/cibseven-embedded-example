@@ -124,11 +124,11 @@ values are read from the environment (they win over the baked defaults):
 The build, mutation-testing and code-generation commands are listed in the README next to the code:
 
 <!-- variant:kotlin-gradle -->
-- [`kotlin-gradle/README.md`](kotlin-gradle/README.md#commands)
-<!-- /variant:kotlin-gradle -->
-<!-- variant:java-maven -->
-- [`java-maven/README.md`](java-maven/README.md#commands)
-<!-- /variant:java-maven -->
+- [`kotlin-gradle/README.md`](kotlin-gradle/README.md#-commands)
+  <!-- /variant:kotlin-gradle -->
+  <!-- variant:java-maven -->
+- [`java-maven/README.md`](java-maven/README.md#-commands)
+  <!-- /variant:java-maven -->
 
 From the repo root:
 
@@ -146,14 +146,13 @@ npm run lint:bpmn        # bpmnlint the .bpmn models
 - **Conventional Commits.** Commit messages and PR titles follow
   [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`,
   `refactor:`, `test:`, `chore:`). Write everything in **English**.
-<!-- variant:blueprint -->
+  <!-- variant:blueprint -->
 - **Change both variants together.** A change in behaviour goes into `kotlin-gradle/` *and*
   `java-maven/` in the same PR, with equivalent tests. Changes that only concern one language's idioms
   stay on that side. Models, forms, migrations and `application.yaml` exist in both variants and must
   be byte-identical — copy your change over; the `Blueprint Checks` workflow fails otherwise. See
   [ADR-0013](docs/adr/0013-two-stack-variants-side-by-side-on-main.md).
-<!-- /variant:blueprint -->
-
+  <!-- /variant:blueprint -->
 - **Keep the gates green.** The architecture, contract-drift and mutation (≥ 80) gates run in CI on
   every PR. They are fitness functions, not style guides — a violation fails the
   build. The mutation gate is **diff-scoped** on PRs (only the classes you changed); the full-module

@@ -19,7 +19,7 @@ npx --yes @usebruno/cli@4.0.0 run . --env local -r
 | `06-incident-demo` | a failing job runs out of retries and raises an incident |
 | `07-list-and-inbox` | the list and task-inbox endpoints |
 
-## Start a case by hand
+## 📮 Start a case by hand
 
 `POST http://localhost:8080/api/bike-leasing`
 
@@ -33,7 +33,7 @@ own `bike_portfolio` table) — never as a process variable — and `GET /api/bi
 back from there. Availability is decided by the `BikeDealerPort` outbound adapter, whose small
 out-of-stock deny-list drives the branch.
 
-## Two ways to complete a user task
+## 🔁 Two ways to complete a user task
 
 If the requested bike is out of stock, the `Clarify alternative with customer` user task shows a
 deliberate contrast:
@@ -44,7 +44,7 @@ deliberate contrast:
   `/engine-rest` only. It never touches the domain, so its data lands only in process variables (see the
   `bpmn:documentation` on each task).
 
-## Incident demo
+## 🚨 Incident demo
 
 To teach **transaction boundaries, retries and incidents**, submit a request for the poison bike
 `BIKE-FAIL`: the simulated dealer outage fails the *Order bike from dealer* job, its retries count down

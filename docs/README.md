@@ -10,7 +10,7 @@ workflow in [AGENTS.md](../AGENTS.md). Where a procedure has a decision behind i
 in the relevant ADR's own Decision section (e.g. the contract flow in ADR-0003, the mutation gate in
 ADR-0004).
 
-## Architecture Decision Records
+## 📐 Architecture Decision Records
 
 Each non-obvious decision is recorded as an ADR in [`adr/`](adr/), in a MADR/Nygard-lite format
 (Status · Context · Decision · Consequences). They are numbered from 0001, never renumbered, and
@@ -31,6 +31,6 @@ copied from [`adr/0000-adr-template.md`](adr/0000-adr-template.md).
 | [0011](adr/0011-build-and-deployment-approach.md) | Build & deployment: `bootBuildImage` OCI image for the headless app. |
 | [0013](adr/0013-two-stack-variants-side-by-side-on-main.md) | Kotlin + Gradle (recommended) and Java + Maven side by side on `main`, sharing the models. |
 
-## Diagrams
+## 📊 Diagrams
 
 - [`assets/bike-leasing.png`](assets/bike-leasing.png) — the BPMN process at a glance.

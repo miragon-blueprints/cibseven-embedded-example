@@ -3,7 +3,7 @@ name: Dependency repair
 # Lets Claude shepherd a red Dependabot pull request back to green. It never merges.
 on:
   workflow_run:
-    workflows: [ "Pre-Merge Checks" ]
+    workflows: [ "Pre-Merge Checks · Kotlin/Gradle", "Pre-Merge Checks · Java/Maven" ]
     types: [ completed ]
 
 concurrency:

@@ -41,7 +41,9 @@ service/
     domain/{leasing,bike}       pure domain model
 ```
 
+<!-- layout:shared -->
 The process models, forms and migrations live in [`../shared`](../shared/README.md).
+<!-- /layout:shared -->
 
 ## How it is built
 

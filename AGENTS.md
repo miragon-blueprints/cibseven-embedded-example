@@ -30,14 +30,14 @@ over REST, and the CIB seven webapps (Cockpit / Tasklist) handle any human-in-th
 
 ## Repository Map
 
-<!-- variant:kotlin-gradle -->
+<!-- variant:kotlin-gradle layout:shared -->
 - `kotlin-gradle/` — the service in Kotlin, built with Gradle
 <!-- /variant:kotlin-gradle -->
-<!-- variant:java-maven -->
+<!-- variant:java-maven layout:shared -->
 - `java-maven/` — the service in Java 21, built with Maven
 <!-- /variant:java-maven -->
 
-Inside the service directory:
+The service:
 
 ```
 service/
@@ -53,12 +53,19 @@ service/
     domain/{leasing,bike}       pure domain model
 ```
 
-At the repo root:
+<!-- layout:shared -->
+The process assets, mounted by the build as a resource root:
 
 ```
-shared/                        process assets, mounted by the build as a resource root
+shared/
   {bpmn,dmn,forms}              the process models and Camunda Forms
   db/migration                  Flyway versioned schema migrations
+```
+<!-- /layout:shared -->
+
+Around it:
+
+```
 bruno/                         REST scenarios (happy-path / escalation / abort / not-solvent / …)
 openapi/                       the checked-in, drift-gated OpenAPI contract (openapi.json)
 docs/                          Architecture Decision Records + diagrams

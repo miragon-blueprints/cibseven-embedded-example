@@ -67,14 +67,16 @@ cd bruno && npx --yes @usebruno/cli@4.0.0 run . --env local -r
 
 ## What's where
 
-<!-- variant:kotlin-gradle -->
+<!-- variant:kotlin-gradle layout:shared -->
 - [`kotlin-gradle/`](kotlin-gradle/README.md) — the service in Kotlin + Gradle, its build and quality gates
 <!-- /variant:kotlin-gradle -->
-<!-- variant:java-maven -->
+<!-- variant:java-maven layout:shared -->
 - [`java-maven/`](java-maven/README.md) — the service in Java 21 + Maven, its build and quality gates
 <!-- /variant:java-maven -->
-
+<!-- layout:shared -->
 - [`shared/`](shared/README.md) — the BPMN + DMN models, Camunda Forms and Flyway migrations
+<!-- /layout:shared -->
+
 - [`openapi/`](openapi/openapi.json) — the checked-in, drift-gated OpenAPI contract
 - [`bruno/`](bruno/README.md) — the REST scenarios, the two ways to complete a user task, the incident demo
 - [`stack/`](stack/docker-compose.yml) — the Postgres dev stack

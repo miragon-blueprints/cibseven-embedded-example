@@ -8,12 +8,22 @@ one and everything that exists only for it.
 git clone git@github.com:miragon-blueprints/cibseven-embedded-example.git my-service
 cd my-service
 
-scripts/create-starter.sh kotlin-gradle     # our recommendation for a modern stack
+scripts/create-starter.sh kotlin-gradle --flat     # our recommendation for a modern stack
 # or
-scripts/create-starter.sh java-maven
+scripts/create-starter.sh java-maven --flat
 
-git status                                  # review, then commit
+git status                                         # review, then commit
 ```
+
+## Two layouts
+
+| | `--flat` | without |
+|---|---|---|
+| **Result** | a plain Spring Boot project: the build in the repo root, the process assets in `service/app/src/main/resources` | the blueprint's layout: `kotlin-gradle/` or `java-maven/` next to `shared/` |
+| **Choose it when** | you start your own project from the blueprint | your repo keeps following the blueprint and merges its changes |
+
+`--flat` rewrites paths in the build, the workflows and the docs, so later blueprint changes no longer
+merge cleanly. Without it nothing is moved and every path stays valid.
 
 ## What the script does
 
@@ -24,11 +34,17 @@ git status                                  # review, then commit
   "change both variants" rule, ADR-0013, this guide and the script itself
 - lists the lines that still mention the removed stack, for a manual look
 
-It works in place, commits nothing and refuses to run on a working tree with uncommitted changes, so
-`git restore --staged --worktree .` undoes it.
+With `--flat` it additionally
 
-The directory layout stays as it is (`kotlin-gradle/` or `java-maven/` next to `shared/`). Paths in the
-workflows and docs remain valid, and later changes from the blueprint can still be merged.
+- moves the BPMN and DMN models, the forms and the migrations from `shared/` into
+  `service/app/src/main/resources` and points the build at them
+- moves the build (wrapper, build files, `service/`) to the repo root and removes the directory prefix
+  from the workflows, Dependabot, the Conductor settings and the docs
+- appends the variant's README to the root README
+
+It works in place, commits nothing and refuses to run on a working tree with uncommitted changes, so
+`git reset --hard` undoes it. Build output of the removed directories is not tracked and stays behind;
+delete it by hand.
 
 ## What is left to you
 
@@ -49,5 +65,10 @@ YAML and TOML:
 <!-- /variant:kotlin-gradle -->
 ```
 
-`variant:java-maven` marks the Java + Maven counterpart, and `variant:blueprint` marks content that is
-dropped from both starters. When you add stack-specific content to a shared file, wrap it the same way.
+`variant:java-maven` marks the Java + Maven counterpart, `variant:blueprint` marks content that is
+dropped from both starters, and `layout:shared` marks content that only applies while the process
+assets live in `shared/` (dropped by `--flat`). A marker can carry several tags. When you add
+stack-specific content to a shared file, wrap it the same way.
+
+The `Starter Checks` workflow creates and builds both flat starters on every pull request, so a path the
+script does not rewrite fails there.

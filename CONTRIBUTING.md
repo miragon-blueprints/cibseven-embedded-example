@@ -162,7 +162,7 @@ npm run lint:bpmn        # bpmnlint the .bpmn models in shared/bpmn
 - **Changing the API?** Re-export the spec (the `OpenApiSpecExportTest`, which every full build runs)
   so the committed `openapi/openapi.json` contract stays in sync — it is **drift-gated in CI**.
 - **Changing the process?** Edit the `.bpmn` model in `shared/bpmn`, regenerate the typed `*ProcessApi`,
-  and lint it with `npm run lint:bpmn`. See [`shared/README.md`](shared/README.md).
+  and lint it with `npm run lint:bpmn`.
 - **Changing the database schema?** Flyway owns it. Add a new forward-only migration
   `V{n}__description.sql` under `shared/db/migration/` in the same change as
   the entity edit — never edit an already-applied migration. Hibernate runs `validate`, so a mismatch

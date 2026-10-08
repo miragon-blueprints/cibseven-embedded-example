@@ -16,7 +16,7 @@
     <description>The CIB seven bike-leasing service (hexagonal)</description>
 
     <properties>
-        <shared.resources.directory>${project.basedir}/../../../shared</shared.resources.directory>
+        <process.assets.directory>${project.basedir}/../../../shared</process.assets.directory>
     </properties>
 
     <dependencies>
@@ -144,17 +144,19 @@
     </dependencies>
 
     <build>
+        <!-- layout:shared -->
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
             </resource>
             <resource>
-                <directory>${shared.resources.directory}</directory>
+                <directory>${process.assets.directory}</directory>
                 <excludes>
                     <exclude>README.md</exclude>
                 </excludes>
             </resource>
         </resources>
+        <!-- /layout:shared -->
         <plugins>
             <!-- Generate the typed process API (Java) from the *.bpmn models into src/main/java.
                  Mirrors the Gradle generateBpmnModels task. Never hand-edit adapter/process/*. -->
@@ -171,7 +173,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <baseDir>${shared.resources.directory}</baseDir>
+                    <baseDir>${process.assets.directory}</baseDir>
                     <filePattern>bpmn/*.bpmn</filePattern>
                     <outputFolderPath>${project.basedir}/src/main/java</outputFolderPath>
                     <packagePath>io.miragon.blueprint.adapter.process</packagePath>

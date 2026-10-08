@@ -9,14 +9,21 @@ multi-ecosystem-groups:
 
 updates:
 
-  # Backend dependencies (Gradle + the Postgres image in the dev stack) grouped into one PR
+  # Backend dependencies of both variants (Gradle + Maven) and the Postgres image in the dev stack,
+  # grouped into one PR so the Kotlin and the Java build move to the same versions together
   - package-ecosystem: "gradle"
-    directory: "/"
+    directory: "/kotlin-gradle"
     patterns:
       - "*"
     multi-ecosystem-group: "backend"
     ignore:
       - dependency-name: "org.jetbrains.kotlin*"
+
+  - package-ecosystem: "maven"
+    directory: "/java-maven"
+    patterns:
+      - "*"
+    multi-ecosystem-group: "backend"
 
   - package-ecosystem: "docker-compose"
     directory: "/stack"

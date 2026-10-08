@@ -12,13 +12,17 @@ npm ci && npm run hooks:install   # BPMN lint + git hooks
 ```
 
 You need **JDK 21** and **Docker (or Podman)** for Postgres. BPMN linting uses Node (the root
-`package.json`) but the service itself is a pure Gradle/Kotlin build with no Node runtime dependency.
+`package.json`) but the service itself has no Node runtime dependency.
 
-Run the service locally:
+The service exists in two equivalent variants: [`kotlin-gradle/`](kotlin-gradle/README.md) (recommended)
+and [`java-maven/`](java-maven/README.md). Both ship their build wrapper, so nothing else needs
+installing. Run either one locally:
 
 ```bash
-docker compose -f stack/docker-compose.yml up -d   # Postgres
-./gradlew :service:app:bootRun                      # backend + engine on :8080
+docker compose -f stack/docker-compose.yml up -d              # Postgres
+cd kotlin-gradle && ./gradlew :service:app:bootRun            # Kotlin variant on :8080
+cd java-maven && ./mvnw -DskipTests install \
+  && ./mvnw -pl service/app spring-boot:run                   # or the Java variant on :8080
 ```
 
 ### Ports
@@ -55,7 +59,8 @@ rationale is in [ADR-0011](docs/adr/0011-build-and-deployment-approach.md).
 
 ```bash
 # 1. build the backend OCI image. Produces miravelo/cibseven-embedded-example:1.0-SNAPSHOT
-./gradlew :service:app:bootBuildImage
+cd kotlin-gradle && ./gradlew :service:app:bootBuildImage && cd ..
+#    Java variant: cd java-maven && ./mvnw -pl service/app -am -DskipTests spring-boot:build-image && cd ..
 
 # 2. start Postgres
 docker compose -f stack/docker-compose.yml up -d
@@ -70,16 +75,15 @@ docker run --rm -p 8080:8080 \
 Then open <http://localhost:8080/camunda> (admin/admin), <http://localhost:8080/swagger-ui.html> and
 <http://localhost:8080/actuator/health>.
 
-**Podman:** `bootBuildImage` needs a Docker-API socket. Expose podman's and point the build at it:
+**Podman:** the image build needs a Docker-API socket. Expose podman's, then build the image as above:
 
 ```bash
 podman system service --time=0 unix:///tmp/podman.sock &
 export DOCKER_HOST=unix:///tmp/podman.sock
-./gradlew :service:app:bootBuildImage
 ```
 
-**Configuration.** `application.yaml` ships dev defaults; the deploy-relevant values are read from the
-environment (they win over the baked defaults):
+**Configuration.** Each variant's `application.yaml` ships the same dev defaults; the deploy-relevant
+values are read from the environment (they win over the baked defaults):
 
 | Env var | Purpose | Default |
 |---|---|---|
@@ -94,14 +98,11 @@ environment (they win over the baked defaults):
 
 ## Scripts
 
-```bash
-# backend
-./gradlew build                         # arch + unit + process + model validation + spec export
-./gradlew :service:app:pitest           # mutation score >= 80
-./gradlew generateBpmnModels            # regenerate the typed process API after editing a .bpmn
+The build, mutation-testing and code-generation commands of each variant are listed in its README
+([Kotlin](kotlin-gradle/README.md#commands) · [Java](java-maven/README.md#commands)). From the repo root:
 
-# BPMN
-npm run lint:bpmn        # bpmnlint the .bpmn models
+```bash
+npm run lint:bpmn        # bpmnlint the .bpmn models in shared/bpmn
 ```
 
 ## Ground rules
@@ -114,18 +115,23 @@ npm run lint:bpmn        # bpmnlint the .bpmn models
 - **Conventional Commits.** Commit messages and PR titles follow
   [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`,
   `refactor:`, `test:`, `chore:`). Write everything in **English**.
-- **Keep the gates green.** The architecture (ArchUnit + Konsist), contract-drift and mutation (≥ 80)
-  gates run in CI on every PR. They are fitness functions, not style guides — a violation fails the
+- **Change both variants together.** A change in behaviour goes into `kotlin-gradle/` *and*
+  `java-maven/` in the same PR, with equivalent tests. Changes that only concern one language's idioms
+  stay on that side. See
+  [ADR-0013](docs/adr/0013-two-stack-variants-side-by-side-on-main.md).
+- **Keep the gates green.** The architecture, contract-drift and mutation (≥ 80) gates run in CI on
+  every PR, for both variants. They are fitness functions, not style guides — a violation fails the
   build. The mutation gate is **diff-scoped** on PRs (only the classes you changed); the full-module
   gate-80 sweep runs nightly.
 - **Add tests.** This is a TDD codebase; match the test style to the layer (see `AGENTS.md`).
   Mutation testing means a test that runs without asserting will fail CI.
-- **Changing the API?** Re-export the spec (the `OpenApiSpecExportTest`, which `./gradlew build` runs)
-  so the committed `openapi/openapi.json` contract stays in sync — it is **drift-gated in CI**.
-- **Changing the process?** Edit the `.bpmn` model, re-run `./gradlew generateBpmnModels` so the typed
-  `*ProcessApi` stays in sync, and lint it with `npm run lint:bpmn`.
+- **Changing the API?** Re-export the spec (the `OpenApiSpecExportTest`, which every full build runs)
+  so the committed `openapi/openapi.json` contract stays in sync — it is **drift-gated in CI** and both
+  variants must produce the identical file.
+- **Changing the process?** Edit the `.bpmn` model in `shared/bpmn`, regenerate the typed `*ProcessApi`
+  in both variants, and lint it with `npm run lint:bpmn`. See [`shared/README.md`](shared/README.md).
 - **Changing the database schema?** Flyway owns it. Add a new forward-only migration
-  `V{n}__description.sql` under `service/app/src/main/resources/db/migration/` in the same change as
+  `V{n}__description.sql` under `shared/db/migration/` in the same change as
   the entity edit — never edit an already-applied migration. Hibernate runs `validate`, so a mismatch
   fails startup. A dev database first created by the old `ddl-auto: create` has no Flyway history;
   reset it once with `docker compose -f stack/docker-compose.yml down -v` before running. See
@@ -134,9 +140,10 @@ npm run lint:bpmn        # bpmnlint the .bpmn models
 ## Before opening a PR
 
 ```bash
-./gradlew build
+(cd kotlin-gradle && ./gradlew build && ./gradlew :service:app:pitest)   # mutation score >= 80
+(cd java-maven && ./mvnw verify \
+  && ./mvnw -pl service/app -am test-compile org.pitest:pitest-maven:mutationCoverage)
 git diff --exit-code openapi/openapi.json    # the API contract must not drift
-./gradlew :service:app:pitest                # mutation score >= 80
 ```
 
 All of these run in CI on every pull request (JDK 21). Before opening a PR, sanity-check that a feature

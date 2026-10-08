@@ -29,6 +29,7 @@ copied from [`adr/0000-adr-template.md`](adr/0000-adr-template.md).
 | [0009](adr/0009-actuator-probes-and-prometheus-metrics.md) | Actuator health/liveness/readiness probes and Prometheus metrics, exposed out of the box. |
 | [0010](adr/0010-flyway-for-database-migrations.md) | Flyway for versioned schema migrations; Hibernate switches to `validate`. |
 | [0011](adr/0011-build-and-deployment-approach.md) | Build & deployment: `bootBuildImage` OCI image for the headless app. |
+| [0013](adr/0013-two-stack-variants-side-by-side-on-main.md) | Kotlin + Gradle (recommended) and Java + Maven side by side on `main`, sharing the models. |
 
 ## Diagrams
 

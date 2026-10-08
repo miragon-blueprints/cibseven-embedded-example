@@ -1,0 +1,33 @@
+spring:
+  main:
+    web-application-type: none
+    allow-bean-definition-overriding: true
+  flyway:
+    enabled: false
+  autoconfigure:
+    exclude:
+      - org.cibseven.bpm.spring.boot.starter.rest.CamundaBpmRestJerseyAutoConfiguration
+  datasource:
+    url: jdbc:h2:mem:bikeleasing-test;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+camunda:
+  bpm:
+    admin-user:
+      id: admin
+      password: admin
+    database:
+      type: h2
+      schema-update: true
+    job-execution:
+      enabled: false
+    webapp:
+      enabled: false

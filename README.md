@@ -6,8 +6,9 @@
 
 A ready-to-fork **starting point** for automating a business process on
 [CIB seven](https://cibseven.org) (the community fork of Camunda 7) with an **embedded engine** and
-Spring Boot — one complete, runnable, production-shaped BPMN service, in two equivalent stacks.
+Spring Boot — one complete, runnable, production-shaped BPMN service.
 
+<!-- variant:blueprint -->
 ## Pick your stack
 
 | | [`kotlin-gradle/`](kotlin-gradle/README.md) | [`java-maven/`](java-maven/README.md) |
@@ -17,7 +18,9 @@ Spring Boot — one complete, runnable, production-shaped BPMN service, in two e
 
 Both run the same process, expose the same REST contract and pass the same end-to-end scenarios. They
 share the BPMN/DMN models, forms and database schema in [`shared/`](shared/README.md), so
-only the implementation language and the build tool differ. Building on one? Delete the other directory.
+only the implementation language and the build tool differ. Building on one?
+[Turn the repo into a single-stack starter](docs/starter.md) with one command.
+<!-- /variant:blueprint -->
 
 ## The scenario
 
@@ -38,13 +41,22 @@ leasing application from the first request to an active lease — and deliberate
 
 You need **JDK 21** and **Docker** (or Podman).
 
-```bash
-docker compose -f stack/docker-compose.yml up -d              # Postgres
+Start Postgres, then the service on :8080:
 
-cd kotlin-gradle && ./gradlew :service:app:bootRun            # either the Kotlin variant …
-cd java-maven && ./mvnw -DskipTests install \
-  && ./mvnw -pl service/app spring-boot:run                   # … or the Java variant, both on :8080
+```bash
+docker compose -f stack/docker-compose.yml up -d
 ```
+
+<!-- variant:kotlin-gradle -->
+```bash
+cd kotlin-gradle && ./gradlew :service:app:bootRun
+```
+<!-- /variant:kotlin-gradle -->
+<!-- variant:java-maven -->
+```bash
+cd java-maven && ./mvnw -DskipTests install && ./mvnw -pl service/app spring-boot:run
+```
+<!-- /variant:java-maven -->
 
 Then open the Cockpit / Tasklist at <http://localhost:8080/camunda> (admin/admin) or the Swagger UI at
 <http://localhost:8080/swagger-ui.html>, and drive the whole process over REST:
@@ -55,25 +67,19 @@ cd bruno && npx --yes @usebruno/cli@4.0.0 run . --env local -r
 
 ## What's where
 
-```
-kotlin-gradle/   the service in Kotlin + Gradle (recommended)
-java-maven/      the same service in Java 21 + Maven
-shared/          BPMN + DMN models, Camunda Forms, Flyway migrations — one source for both
-openapi/         the checked-in, drift-gated OpenAPI contract both variants must produce
-bruno/           REST scenarios that run against either variant
-stack/           Postgres dev stack (docker compose)
-docs/            Architecture Decision Records + diagrams
-```
+<!-- variant:kotlin-gradle -->
+- [`kotlin-gradle/`](kotlin-gradle/README.md) — the service in Kotlin + Gradle, its build and quality gates
+<!-- /variant:kotlin-gradle -->
+<!-- variant:java-maven -->
+- [`java-maven/`](java-maven/README.md) — the service in Java 21 + Maven, its build and quality gates
+<!-- /variant:java-maven -->
 
-## Go deeper
-
-- **The code, its build and its quality gates** — [`kotlin-gradle/README.md`](kotlin-gradle/README.md) ·
-  [`java-maven/README.md`](java-maven/README.md)
-- **The process models and how both builds consume them** — [`shared/README.md`](shared/README.md)
-- **The scenarios, the two ways to complete a user task, and the incident demo** —
-  [`bruno/README.md`](bruno/README.md)
-- **Why the repo is shaped this way** — the [Architecture Decision Records](docs/README.md)
-- **Setup, ports, containers and the PR workflow** — [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- [`shared/`](shared/README.md) — the BPMN + DMN models, Camunda Forms and Flyway migrations
+- [`openapi/`](openapi/openapi.json) — the checked-in, drift-gated OpenAPI contract
+- [`bruno/`](bruno/README.md) — the REST scenarios, the two ways to complete a user task, the incident demo
+- [`stack/`](stack/docker-compose.yml) — the Postgres dev stack
+- [`docs/`](docs/README.md) — the Architecture Decision Records: why the repo is shaped this way
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — setup, ports, containers and the PR workflow
 
 ## License
 

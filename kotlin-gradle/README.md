@@ -3,11 +3,13 @@
 The bike-leasing service in **Kotlin 2.4**, built with **Gradle** and a `libs.versions.toml` version
 catalog, on Spring Boot 4 and an embedded CIB seven 2.2 engine.
 
+<!-- variant:blueprint -->
 > [!TIP]
 > **This is the stack we recommend** when you are free to choose. Null-safety keeps the domain model and
 > the OpenAPI contract precise without annotations, `data` and `value` classes keep the domain compact,
 > and Konsist adds source-level architecture rules that bytecode analysis cannot express. The
 > [Java + Maven variant](../java-maven/README.md) is functionally identical for teams bound to that stack.
+<!-- /variant:blueprint -->
 
 ## Commands
 

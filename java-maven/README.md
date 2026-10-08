@@ -4,9 +4,11 @@ The bike-leasing service in **Java 21**, built with **Maven**, on Spring Boot 4 
 CIB seven 2.2 engine. It is the stack most enterprise teams and our trainings use, and needs no Kotlin
 or Gradle knowledge.
 
+<!-- variant:blueprint -->
 > [!NOTE]
 > Functionally identical to the [Kotlin + Gradle variant](../kotlin-gradle/README.md), which is the one
 > we recommend when you are free to choose. Same process, same REST contract, same scenarios.
+<!-- /variant:blueprint -->
 
 ## Commands
 
@@ -57,9 +59,11 @@ The process models, forms and migrations live in [`../shared`](../shared/README.
 - **OpenAPI contract.** A test exports the springdoc spec to [`../openapi/openapi.json`](../openapi/openapi.json);
   CI fails on drift.
 
+<!-- variant:blueprint -->
 ## What differs from the Kotlin variant
 
 Only idioms: **records** and `Optional` instead of `data` classes and nullable types, **Mockito** instead
 of MockK, **SLF4J** instead of kotlin-logging, **Checkstyle** instead of Konsist. Records carry no
 nullability, so the REST DTOs declare it with `@Schema(requiredMode = …)` / `@Schema(nullable = true)` to
 produce the same contract.
+<!-- /variant:blueprint -->

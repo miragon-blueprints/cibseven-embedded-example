@@ -14,16 +14,28 @@ npm ci && npm run hooks:install   # BPMN lint + git hooks
 You need **JDK 21** and **Docker (or Podman)** for Postgres. BPMN linting uses Node (the root
 `package.json`) but the service itself has no Node runtime dependency.
 
+<!-- variant:blueprint -->
 The service exists in two equivalent variants: [`kotlin-gradle/`](kotlin-gradle/README.md) (recommended)
-and [`java-maven/`](java-maven/README.md). Both ship their build wrapper, so nothing else needs
-installing. Run either one locally:
+and [`java-maven/`](java-maven/README.md). Run either one.
+<!-- /variant:blueprint -->
+
+The build wrapper is included, so nothing else needs installing. Start Postgres, then the backend and
+engine on :8080:
 
 ```bash
-docker compose -f stack/docker-compose.yml up -d              # Postgres
-cd kotlin-gradle && ./gradlew :service:app:bootRun            # Kotlin variant on :8080
-cd java-maven && ./mvnw -DskipTests install \
-  && ./mvnw -pl service/app spring-boot:run                   # or the Java variant on :8080
+docker compose -f stack/docker-compose.yml up -d
 ```
+
+<!-- variant:kotlin-gradle -->
+```bash
+cd kotlin-gradle && ./gradlew :service:app:bootRun
+```
+<!-- /variant:kotlin-gradle -->
+<!-- variant:java-maven -->
+```bash
+cd java-maven && ./mvnw -DskipTests install && ./mvnw -pl service/app spring-boot:run
+```
+<!-- /variant:java-maven -->
 
 ### Ports
 
@@ -57,15 +69,26 @@ The dev loop above runs the backend from source. To run it as a container instea
 OCI image (Spring buildpacks — no Dockerfile) and run it against the Postgres compose stack. The
 rationale is in [ADR-0011](docs/adr/0011-build-and-deployment-approach.md).
 
-```bash
-# 1. build the backend OCI image. Produces miravelo/cibseven-embedded-example:1.0-SNAPSHOT
-cd kotlin-gradle && ./gradlew :service:app:bootBuildImage && cd ..
-#    Java variant: cd java-maven && ./mvnw -pl service/app -am -DskipTests spring-boot:build-image && cd ..
+Build the backend OCI image; it produces `miravelo/cibseven-embedded-example:1.0-SNAPSHOT`:
 
-# 2. start Postgres
+<!-- variant:kotlin-gradle -->
+```bash
+(cd kotlin-gradle && ./gradlew :service:app:bootBuildImage)
+```
+<!-- /variant:kotlin-gradle -->
+<!-- variant:java-maven -->
+```bash
+(cd java-maven && ./mvnw -pl service/app -am -DskipTests spring-boot:build-image)
+```
+<!-- /variant:java-maven -->
+
+Then run it against the compose Postgres:
+
+```bash
+# 1. start Postgres
 docker compose -f stack/docker-compose.yml up -d
 
-# 3. run the image against it (host networking; point it at the compose Postgres)
+# 2. run the image against it (host networking; point it at the compose Postgres)
 docker run --rm -p 8080:8080 \
   -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/bikeleasing \
   -e SPRING_DATASOURCE_USERNAME=admin -e SPRING_DATASOURCE_PASSWORD=admin \
@@ -82,7 +105,7 @@ podman system service --time=0 unix:///tmp/podman.sock &
 export DOCKER_HOST=unix:///tmp/podman.sock
 ```
 
-**Configuration.** Each variant's `application.yaml` ships the same dev defaults; the deploy-relevant
+**Configuration.** `application.yaml` ships dev defaults; the deploy-relevant
 values are read from the environment (they win over the baked defaults):
 
 | Env var | Purpose | Default |
@@ -98,8 +121,16 @@ values are read from the environment (they win over the baked defaults):
 
 ## Scripts
 
-The build, mutation-testing and code-generation commands of each variant are listed in its README
-([Kotlin](kotlin-gradle/README.md#commands) · [Java](java-maven/README.md#commands)). From the repo root:
+The build, mutation-testing and code-generation commands are listed in the README next to the code:
+
+<!-- variant:kotlin-gradle -->
+- [`kotlin-gradle/README.md`](kotlin-gradle/README.md#commands)
+<!-- /variant:kotlin-gradle -->
+<!-- variant:java-maven -->
+- [`java-maven/README.md`](java-maven/README.md#commands)
+<!-- /variant:java-maven -->
+
+From the repo root:
 
 ```bash
 npm run lint:bpmn        # bpmnlint the .bpmn models in shared/bpmn
@@ -115,21 +146,23 @@ npm run lint:bpmn        # bpmnlint the .bpmn models in shared/bpmn
 - **Conventional Commits.** Commit messages and PR titles follow
   [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`,
   `refactor:`, `test:`, `chore:`). Write everything in **English**.
+<!-- variant:blueprint -->
 - **Change both variants together.** A change in behaviour goes into `kotlin-gradle/` *and*
   `java-maven/` in the same PR, with equivalent tests. Changes that only concern one language's idioms
   stay on that side. See
   [ADR-0013](docs/adr/0013-two-stack-variants-side-by-side-on-main.md).
+<!-- /variant:blueprint -->
+
 - **Keep the gates green.** The architecture, contract-drift and mutation (≥ 80) gates run in CI on
-  every PR, for both variants. They are fitness functions, not style guides — a violation fails the
+  every PR. They are fitness functions, not style guides — a violation fails the
   build. The mutation gate is **diff-scoped** on PRs (only the classes you changed); the full-module
   gate-80 sweep runs nightly.
 - **Add tests.** This is a TDD codebase; match the test style to the layer (see `AGENTS.md`).
   Mutation testing means a test that runs without asserting will fail CI.
 - **Changing the API?** Re-export the spec (the `OpenApiSpecExportTest`, which every full build runs)
-  so the committed `openapi/openapi.json` contract stays in sync — it is **drift-gated in CI** and both
-  variants must produce the identical file.
-- **Changing the process?** Edit the `.bpmn` model in `shared/bpmn`, regenerate the typed `*ProcessApi`
-  in both variants, and lint it with `npm run lint:bpmn`. See [`shared/README.md`](shared/README.md).
+  so the committed `openapi/openapi.json` contract stays in sync — it is **drift-gated in CI**.
+- **Changing the process?** Edit the `.bpmn` model in `shared/bpmn`, regenerate the typed `*ProcessApi`,
+  and lint it with `npm run lint:bpmn`. See [`shared/README.md`](shared/README.md).
 - **Changing the database schema?** Flyway owns it. Add a new forward-only migration
   `V{n}__description.sql` under `shared/db/migration/` in the same change as
   the entity edit — never edit an already-applied migration. Hibernate runs `validate`, so a mismatch
@@ -139,10 +172,19 @@ npm run lint:bpmn        # bpmnlint the .bpmn models in shared/bpmn
 
 ## Before opening a PR
 
+<!-- variant:kotlin-gradle -->
 ```bash
 (cd kotlin-gradle && ./gradlew build && ./gradlew :service:app:pitest)   # mutation score >= 80
+```
+<!-- /variant:kotlin-gradle -->
+<!-- variant:java-maven -->
+```bash
 (cd java-maven && ./mvnw verify \
-  && ./mvnw -pl service/app -am test-compile org.pitest:pitest-maven:mutationCoverage)
+  && ./mvnw -pl service/app -am test-compile org.pitest:pitest-maven:mutationCoverage)   # mutation score >= 80
+```
+<!-- /variant:java-maven -->
+
+```bash
 git diff --exit-code openapi/openapi.json    # the API contract must not drift
 ```
 

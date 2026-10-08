@@ -11,31 +11,52 @@ over REST, and the CIB seven webapps (Cockpit / Tasklist) handle any human-in-th
 
 - **Backend** — Spring Boot 4, hexagonal, CIB seven 2.2 embedded engine (JavaDelegates invoked by
   expression, **not** Zeebe workers). Package root `io.miragon.blueprint`.
+<!-- variant:blueprint -->
 - **Two equivalent variants on `main`** — `kotlin-gradle/` (Kotlin, **the recommended stack**) and
   `java-maven/` (Java 21, for teams bound to it and for trainings). They share the models in `shared/`
   and must stay functionally identical: **make every change in behaviour in both variants in the same
-  PR.** Changes that only concern one language's idioms stay on that side. See [ADR-0013](docs/adr/0013-two-stack-variants-side-by-side-on-main.md).
+  PR.** Changes that only concern one language's idioms stay on that side. See
+  [ADR-0013](docs/adr/0013-two-stack-variants-side-by-side-on-main.md). The OpenAPI contract below is
+  drift-gated against **both** variants.
+  Stack-specific content in shared files (docs, Dependabot, Conductor settings) is wrapped in
+  `variant:<name>` markers so `scripts/create-starter.sh` can strip it — see
+  [docs/starter.md](docs/starter.md).
+<!-- /variant:blueprint -->
+
 - **The contract** is `openapi/openapi.json`: springdoc generates it from the controllers, it is
-  **committed and drift-gated** in CI against **both** variants. It is the published contract for any
+  **committed and drift-gated** in CI. It is the published contract for any
   REST consumer — a backend REST change that isn't re-exported fails the drift gate. See
   [ADR-0003](docs/adr/0003-openapi-as-the-checked-in-contract.md).
 
 ## Repository Map
 
+<!-- variant:kotlin-gradle -->
+- `kotlin-gradle/` — the service in Kotlin, built with Gradle
+<!-- /variant:kotlin-gradle -->
+<!-- variant:java-maven -->
+- `java-maven/` — the service in Java 21, built with Maven
+<!-- /variant:java-maven -->
+
+Inside the service directory:
+
 ```
-kotlin-gradle/ · java-maven/   the two variants — same structure below, Kotlin or Java sources
-  service/
-    common-architecture-tests/   reusable architecture rule suite (ArchUnit; Kotlin adds Konsist)
-    app/                         the CIB seven bike-leasing service (hexagonal)
-      adapter/inbound/rest        domain REST controllers + OpenAPI / problem-details config
-      adapter/inbound/cibseven    JavaDelegates + listeners for the BPMN service tasks
-      adapter/outbound/cibseven   drives the engine (RuntimeService / TaskService) + task inbox
-      adapter/outbound/db         JPA persistence (leasing applications + bike portfolio)
-      adapter/outbound/…          simulated dealer / contract / insurance / notification adapters
-      adapter/process             generated *ProcessApi (bpmn-to-code) + engine config
-      application/{port,service}  use-case ports and their services
-      domain/{leasing,bike}       pure domain model
-shared/                        single source for both variants, mounted as a resource root
+service/
+  common-architecture-tests/   reusable architecture rule suite
+  app/                         the CIB seven bike-leasing service (hexagonal)
+    adapter/inbound/rest        domain REST controllers + OpenAPI / problem-details config
+    adapter/inbound/cibseven    JavaDelegates + listeners for the BPMN service tasks
+    adapter/outbound/cibseven   drives the engine (RuntimeService / TaskService) + task inbox
+    adapter/outbound/db         JPA persistence (leasing applications + bike portfolio)
+    adapter/outbound/…          simulated dealer / contract / insurance / notification adapters
+    adapter/process             generated *ProcessApi (bpmn-to-code) + engine config
+    application/{port,service}  use-case ports and their services
+    domain/{leasing,bike}       pure domain model
+```
+
+At the repo root:
+
+```
+shared/                        process assets, mounted by the build as a resource root
   {bpmn,dmn,forms}              the process models and Camunda Forms
   db/migration                  Flyway versioned schema migrations
 bruno/                         REST scenarios (happy-path / escalation / abort / not-solvent / …)
@@ -44,19 +65,28 @@ docs/                          Architecture Decision Records + diagrams
 stack/                         Postgres dev stack (docker compose)
 .github/                       pre-merge + nightly pipelines + Dependabot
 .githooks/                     pre-commit hook (bpmnlint on staged .bpmn)
+scripts/create-starter.sh      strips the repo down to one variant (docs/starter.md)
 package.json / .bpmnlintrc     root-level bpmnlint config + git-hook installer (npm run lint:bpmn)
 ```
 
 ## Development Setup
 
-Two commands to a running service:
+Two commands to a running service — Postgres, then the backend + engine on :8080:
 
 ```bash
-docker compose -f stack/docker-compose.yml up -d              # Postgres
-cd kotlin-gradle && ./gradlew :service:app:bootRun            # Kotlin variant on :8080
-cd java-maven && ./mvnw -DskipTests install \
-  && ./mvnw -pl service/app spring-boot:run                   # or the Java variant on :8080
+docker compose -f stack/docker-compose.yml up -d
 ```
+
+<!-- variant:kotlin-gradle -->
+```bash
+cd kotlin-gradle && ./gradlew :service:app:bootRun
+```
+<!-- /variant:kotlin-gradle -->
+<!-- variant:java-maven -->
+```bash
+cd java-maven && ./mvnw -DskipTests install && ./mvnw -pl service/app spring-boot:run
+```
+<!-- /variant:java-maven -->
 
 ### Ports (one source of truth — keep README, this file and `.conductor/settings.toml` in sync)
 
@@ -73,15 +103,25 @@ Under Conductor the ports are fixed and the workspace runs `nonconcurrent`
 
 ## Build Commands
 
-Run Gradle from `kotlin-gradle/` and Maven from `java-maven/`; everything else from the repo root.
+<!-- variant:kotlin-gradle -->
+| Area (run in `kotlin-gradle/`) | Command |
+|---|---|
+| Backend (arch + unit + process + model validation + spec export) | `./gradlew build` |
+| Mutation testing (gate 80) | `./gradlew :service:app:pitest` |
+| Regenerate the typed BPMN process API (after editing a `.bpmn`) | `./gradlew generateBpmnModels` |
+| Regenerate the OpenAPI contract | `./gradlew :service:app:test --tests "io.miragon.blueprint.openapi.OpenApiSpecExportTest"` |
+| Backend OCI image (`miravelo/cibseven-embedded-example`) | `./gradlew :service:app:bootBuildImage` |
+<!-- /variant:kotlin-gradle -->
 
-| Area | Kotlin (`kotlin-gradle/`) | Java (`java-maven/`) |
-|---|---|---|
-| Backend (arch + unit + process + model validation + spec export) | `./gradlew build` | `./mvnw verify` |
-| Mutation testing (gate 80) | `./gradlew :service:app:pitest` | `./mvnw -pl service/app -am test-compile org.pitest:pitest-maven:mutationCoverage` |
-| Regenerate the typed BPMN process API (after editing a `.bpmn`) | `./gradlew generateBpmnModels` | `./mvnw -pl service/app generate-sources` |
-| Regenerate the OpenAPI contract | `./gradlew :service:app:test --tests "io.miragon.blueprint.openapi.OpenApiSpecExportTest"` | `./mvnw -pl service/app -am test -Dtest=OpenApiSpecExportTest -Dsurefire.failIfNoSpecifiedTests=false` |
-| Backend OCI image (`miravelo/cibseven-embedded-example`) | `./gradlew :service:app:bootBuildImage` | `./mvnw -pl service/app -am -DskipTests spring-boot:build-image` |
+<!-- variant:java-maven -->
+| Area (run in `java-maven/`) | Command |
+|---|---|
+| Backend (arch + unit + process + model validation + spec export) | `./mvnw verify` |
+| Mutation testing (gate 80) | `./mvnw -pl service/app -am test-compile org.pitest:pitest-maven:mutationCoverage` |
+| Regenerate the typed BPMN process API (after editing a `.bpmn`) | `./mvnw -pl service/app generate-sources` |
+| Regenerate the OpenAPI contract | `./mvnw -pl service/app -am test -Dtest=OpenApiSpecExportTest -Dsurefire.failIfNoSpecifiedTests=false` |
+| Backend OCI image (`miravelo/cibseven-embedded-example`) | `./mvnw -pl service/app -am -DskipTests spring-boot:build-image` |
+<!-- /variant:java-maven -->
 
 | Area (repo root) | Command |
 |---|---|
@@ -94,8 +134,8 @@ CONTRIBUTING "Run it in containers".
 
 ## Architecture — the rules are machine-enforced
 
-The backend's hexagonal rules live in each variant's `service/common-architecture-tests` (ArchUnit;
-Kotlin adds Konsist, Java enforces the same two source rules with Checkstyle) and **fail the build** (see [ADR-0007](docs/adr/0007-two-architecture-test-tools-archunit-and-konsist.md)).
+The backend's hexagonal rules live in `service/common-architecture-tests` (ArchUnit, plus a
+source-level tool for the rules bytecode cannot express) and **fail the build** (see [ADR-0007](docs/adr/0007-two-architecture-test-tools-archunit-and-konsist.md)).
 Read `HexagonalArchitectureTest.kt` and `NamingConventionArchitectureTest.kt` before writing code. The
 hard rules:
 
@@ -107,7 +147,7 @@ hard rules:
   there.
 - **`adapter/process` is generated.** Never hand-edit `*ProcessApi` or the shared
   `ServiceTasks`/`Messages`/`ProcessVariables`/`Errors`/`Escalations` files; edit the `.bpmn` in
-  `shared/bpmn` and regenerate in both variants.
+  `shared/bpmn` and regenerate.
 - **Suffixes:** inbound port `UseCase|Query`; outbound `Port|Repository|Process`; service
   `Service|Configuration`; `adapter.inbound.rest` `Controller|Dto|Input|Mapper|Configuration`;
   `adapter.inbound.cibseven` `Delegate|Worker|Listener`; `adapter.outbound`
@@ -131,27 +171,40 @@ TDD. Match the test style to the layer:
 | Layer | Test style |
 |---|---|
 | domain | plain unit tests |
-| application service | mock the ports — MockK (Kotlin), Mockito (Java) |
-| `adapter.inbound.rest` | `@WebMvcTest` + `@MockkBean` (Kotlin) / `@MockitoBean` (Java) |
+| application service | unit tests with mocked ports |
+| `adapter.inbound.rest` | `@WebMvcTest` with the use case mocked |
 | `adapter.outbound.db` | `@DataJpaTest` |
 | process end-to-end | CIB seven process tests, paths asserted via `ProcessPath` |
 
-**Mutation testing gates PRs at 80** in both variants: a test that executes without asserting
+**Mutation testing gates PRs at 80**: a test that executes without asserting
 will fail CI. Coverage says a line ran; mutation says a test would have noticed. The PR gate runs
 **diff-scoped** (only the classes the PR changed, still blocking); the **full-module** gate-80 sweep
 runs nightly. See [ADR-0004](docs/adr/0004-mutation-testing-as-a-blocking-pr-gate.md).
 
 ## Verify After Each Task (targeted, not a full build)
 
-Kotlin commands run in `kotlin-gradle/`, Java commands in `java-maven/`. Verify the variant you
-touched — which, for a service change, is both.
+<!-- variant:blueprint -->
+Verify the variant you touched — which, for a change in behaviour, is both.
+<!-- /variant:blueprint -->
 
-- Backend service/controller: `./gradlew :service:app:test --tests "*<Name>Test"` ·
-  `./mvnw -pl service/app -am test -Dtest="<Name>Test" -Dsurefire.failIfNoSpecifiedTests=false`
-- Architecture only: `./gradlew :service:app:test --tests "io.miragon.blueprint.architecture.*"` ·
-  `./mvnw -pl service/app -am test -Dtest="ArchitectureTest" -Dsurefire.failIfNoSpecifiedTests=false`
-- Contract changed: regenerate the spec from both variants, then `git diff --exit-code openapi/openapi.json`
-- Process changed: regenerate the process API in both variants, then the `process.*` tests
+<!-- variant:kotlin-gradle -->
+In `kotlin-gradle/`:
+
+- Backend service/controller: `./gradlew :service:app:test --tests "*<Name>Test"`
+- Architecture only: `./gradlew :service:app:test --tests "io.miragon.blueprint.architecture.*"`
+<!-- /variant:kotlin-gradle -->
+
+<!-- variant:java-maven -->
+In `java-maven/`:
+
+- Backend service/controller: `./mvnw -pl service/app -am test -Dtest="<Name>Test" -Dsurefire.failIfNoSpecifiedTests=false`
+- Architecture only: `./mvnw -pl service/app -am test -Dtest="ArchitectureTest" -Dsurefire.failIfNoSpecifiedTests=false`
+<!-- /variant:java-maven -->
+
+From the repo root:
+
+- Contract changed: regenerate the spec, then `git diff --exit-code openapi/openapi.json`
+- Process changed: regenerate the process API, then the `process.*` tests
 
 ## Working with GitHub
 

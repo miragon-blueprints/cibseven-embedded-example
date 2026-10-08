@@ -1,8 +1,10 @@
 package io.miragon.blueprint.application.service;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -58,5 +60,24 @@ class SubmitLeasingRequestServiceTest {
                         && application.createdAt().equals(LocalDateTime.now(clock))));
         verify(process).submitRequest(argThat(application -> application.id().equals(id)));
         verifyNoMoreInteractions(repository, bikePortfolio, process);
+    }
+
+    @Test
+    void submitRejectsARequestWithoutIncomeAndStartsNoProcess() {
+
+        // given: a leasing-request command without any income
+        SubmitLeasingRequestUseCase.Command command = new SubmitLeasingRequestUseCase.Command(
+                new CustomerName("John Doe"),
+                new Email("john.doe@test.com"),
+                35,
+                0.0,
+                new BikeId("BIKE-900"),
+                "Gravel Explorer 900");
+        when(bikePortfolio.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // when / then: the request is refused before anything is persisted or started
+        assertThatThrownBy(() -> underTest.submit(command)).isInstanceOf(IllegalArgumentException.class);
+        verify(repository, never()).save(any());
+        verify(process, never()).submitRequest(any());
     }
 }

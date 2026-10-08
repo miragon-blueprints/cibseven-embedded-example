@@ -9,7 +9,8 @@ import org.springframework.stereotype.Component
 /**
  * Example [ExecutionListener] on the `serviceTask_orderBike` service task, wired via
  * `camunda:executionListener event="end"` in the BPMN. It fires *after* the `orderBikeDelegate` has
- * run and can read the result variables the delegate wrote, so it simply audit-logs the outcome.
+ * run and can read the result variable the delegate wrote, so it simply audit-logs the outcome. No
+ * `orderId` means the delegate left the task through the `bikeUnavailable` BPMN error.
  *
  * Like the delegates, it is a Spring `@Component` referenced by expression (`#{bikeOrderAuditListener}`).
  * A production listener could call a use case instead of logging — exactly like [OrderBikeDelegate].
@@ -21,10 +22,9 @@ class BikeOrderAuditListener : ExecutionListener {
 
     override fun notify(execution: DelegateExecution) {
         val orderId = execution.getVariable(FlowNodes.ServiceTaskOrderBike.Variables.ORDER_ID.value)
-        val bikeAvailable = execution.getVariable(FlowNodes.ServiceTaskOrderBike.Variables.BIKE_AVAILABLE.value)
         log.info {
             "Bike order finished for application '${execution.processBusinessKey}': " +
-                "orderId=$orderId, bikeAvailable=$bikeAvailable"
+                "orderId=$orderId"
         }
     }
 }

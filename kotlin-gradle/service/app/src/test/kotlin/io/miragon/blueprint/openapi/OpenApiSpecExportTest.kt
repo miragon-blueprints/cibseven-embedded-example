@@ -77,13 +77,13 @@ class OpenApiSpecExportTest {
         return response.body()
     }
 
-    /** Walk up from the module working directory until the file with `settings.gradle.kts` is found. */
+    /** Walk up from the module working directory until the directory holding the shared `openapi/` contract is found. */
     private fun repoRoot(): Path {
         var dir: Path? = Path.of(System.getProperty("user.dir")).toAbsolutePath()
         while (dir != null) {
-            if (dir.resolve("settings.gradle.kts").exists()) return dir
+            if (dir.resolve("openapi").exists()) return dir
             dir = dir.parent
         }
-        error("could not locate the repo root (no settings.gradle.kts found above ${System.getProperty("user.dir")})")
+        error("could not locate the repo root (no openapi directory found above ${System.getProperty("user.dir")})")
     }
 }

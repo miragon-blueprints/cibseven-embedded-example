@@ -1,6 +1,6 @@
 package io.miragon.blueprint.adapter.inbound.rest
 
-import io.miragon.blueprint.application.port.inbound.WithdrawApplicationUseCase
+import io.miragon.blueprint.application.port.inbound.ReportHandoverUseCase
 import io.miragon.blueprint.domain.leasing.ApplicationId
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.http.ResponseEntity
@@ -11,14 +11,14 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/bike-leasing")
-class WithdrawApplicationController(
-    private val useCase: WithdrawApplicationUseCase,
+class ReportHandoverController(
+    private val useCase: ReportHandoverUseCase,
 ) {
 
-    @Operation(operationId = "withdrawApplication")
-    @PostMapping("/{applicationId}/withdraw")
-    fun withdraw(@PathVariable applicationId: String): ResponseEntity<Unit> {
-        useCase.withdraw(ApplicationId.of(applicationId))
+    @Operation(operationId = "reportHandover")
+    @PostMapping("/{applicationId}/report-handover")
+    fun reportHandover(@PathVariable applicationId: String): ResponseEntity<Void> {
+        useCase.reportHandover(ApplicationId.of(applicationId))
         return ResponseEntity.accepted().build()
     }
 }

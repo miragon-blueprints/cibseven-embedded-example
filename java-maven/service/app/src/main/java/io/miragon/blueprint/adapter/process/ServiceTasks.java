@@ -30,8 +30,6 @@ public final class ServiceTasks {
 
   public static final String SEND_REMINDER_MAIL_DELEGATE = "#{sendReminderMailDelegate}";
 
-  public static final String VALIDATE_APPLICATION_DELEGATE = "#{validateApplicationDelegate}";
-
   private ServiceTasks() {
   }
 
@@ -47,7 +45,6 @@ public final class ServiceTasks {
         SEND_CANCELLATION_CONFIRMATION_DELEGATE,
         SEND_CONTRACT_DELEGATE,
         SEND_REJECTION_DELEGATE,
-        SEND_REMINDER_MAIL_DELEGATE,
-        VALIDATE_APPLICATION_DELEGATE);
+        SEND_REMINDER_MAIL_DELEGATE);
   }
 }

@@ -59,8 +59,8 @@ cd bruno && npx --yes @usebruno/cli@4.0.0 run . --env local -r
 ```
 
 The happy path submits an application, signs the contract, and reports the handover; the other numbered
-folders cover escalation, abort, not-solvent, bike-unavailable, the incident demo, and the list/inbox
-endpoints. Confirm <http://localhost:8080/camunda> (admin/admin), <http://localhost:8080/swagger-ui.html>
+folders cover escalation, abort, not-solvent, bike-unavailable, the incident demo, the list/inbox
+endpoints, a declined alternative and an invalid request. Confirm <http://localhost:8080/camunda> (admin/admin), <http://localhost:8080/swagger-ui.html>
 and <http://localhost:8080/actuator/health> (status `UP`) all load.
 
 ## Run it in containers

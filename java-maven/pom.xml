@@ -37,10 +37,10 @@
         <h2.version>2.5.252</h2.version>
 
         <!-- Build plugins -->
-        <checkstyle.version>10.21.1</checkstyle.version>
+        <checkstyle.version>14.3.0</checkstyle.version>
         <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
-        <pitest-maven.version>1.19.0</pitest-maven.version>
-        <pitest-junit5-plugin.version>1.2.2</pitest-junit5-plugin.version>
+        <pitest-maven.version>1.30.0</pitest-maven.version>
+        <pitest-junit5-plugin.version>1.2.3</pitest-junit5-plugin.version>
     </properties>
 
     <dependencyManagement>

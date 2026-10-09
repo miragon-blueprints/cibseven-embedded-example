@@ -8,8 +8,11 @@ import io.miragon.blueprint.domain.leasing.ApplicationId
 import io.miragon.blueprint.domain.leasing.CustomerName
 import io.miragon.blueprint.domain.leasing.Email
 import io.miragon.blueprint.domain.leasing.LeasingApplication
+import io.miragon.blueprint.domain.leasing.LeasingStatus
+import io.miragon.blueprint.process.util.continueToNextWaitState
 import io.miragon.blueprint.process.util.executeJobFor
 import io.miragon.blueprint.process.util.findProcessInstance
+import org.assertj.core.api.Assertions
 import org.cibseven.bpm.engine.ProcessEngine
 import org.cibseven.bpm.engine.RuntimeService
 import org.cibseven.bpm.engine.test.assertions.bpmn.BpmnAwareTests.assertThat
@@ -76,5 +79,39 @@ class BikeUnavailableTransactionTest {
         assertThat(instance)
             .isWaitingAt(FlowNodes.UserTaskClarifyAlternative.ELEMENT_ID)
             .hasPassed(FlowNodes.EventBikeUnavailable.ELEMENT_ID)
+    }
+
+    @Test
+    fun `bike unavailable - the bike the process carries is stored although the order service throws`() {
+        // the stored application names another bike than the out-of-stock one the process carries
+        val application =
+            LeasingApplication.receive(
+                id = ApplicationId.new(),
+                customerName = CustomerName("Test Customer"),
+                email = Email("test@example.com"),
+                age = 35,
+                monthlyNetIncome = 3500.0,
+                bikeId = BikeId("BIKE-900"),
+                createdAt = LocalDateTime.now(),
+            )
+        repository.save(application)
+        process.submitRequest(application.selectAlternative(BikeId("BIKE-OOS")))
+
+        processEngine.executeJobFor(FlowNodes.StartEventLeasingRequestReceived)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskSendContract)
+        process.correlateContractSigned(application.id)
+        processEngine.executeJobFor(FlowNodes.EventContractSigned)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskIssueInsurancePolicy)
+        processEngine.executeJobFor(FlowNodes.ServiceTaskOrderBike) // unavailable -> BPMN error -> clarify alternative
+
+        Assertions.assertThat(repository.findById(application.id)?.bikeId).isEqualTo(BikeId("BIKE-OOS"))
+
+        // the alternative reaches the application through the process variable alone
+        process.completeAlternativeClarification(application.id, alternativeFound = true, bikeId = BikeId("BIKE-ALT"))
+        processEngine.continueToNextWaitState()
+
+        val reordered = repository.findById(application.id)
+        Assertions.assertThat(reordered?.bikeId).isEqualTo(BikeId("BIKE-ALT"))
+        Assertions.assertThat(reordered?.status).isEqualTo(LeasingStatus.ORDERED)
     }
 }

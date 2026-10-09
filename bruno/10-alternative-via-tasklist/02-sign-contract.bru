@@ -1,0 +1,20 @@
+meta {
+  name: Sign the contract
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/bike-leasing/{{applicationId}}/sign-contract
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  await pollApp("/api/bike-leasing/" + bru.getVar("applicationId"),
+    (b, s) => s === 200 && b && b.contractId != null);
+}
+
+assert {
+  res.status: eq 202
+}

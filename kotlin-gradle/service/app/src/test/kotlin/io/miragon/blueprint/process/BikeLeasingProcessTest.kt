@@ -38,6 +38,7 @@ import io.miragon.bpmn.runtime.path.then
 import io.miragon.bpmn.runtime.path.throwingCompensation
 import io.mockk.every
 import io.mockk.verify
+import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions
 import org.cibseven.bpm.engine.HistoryService
 import org.cibseven.bpm.engine.ProcessEngine
@@ -107,7 +108,7 @@ class BikeLeasingProcessTest {
     @BeforeEach
     fun setUp() {
         init(processEngine)
-        every { orderBikeUseCase.orderBike(any()) } returns OrderId("ORDER-1")
+        every { orderBikeUseCase.orderBike(any(), any()) } returns OrderId("ORDER-1")
     }
 
     @Test
@@ -258,7 +259,7 @@ class BikeLeasingProcessTest {
     @Test
     fun `bike unavailable - clarifying an alternative re-orders and leasing becomes active`() {
         // the first order finds the requested bike unavailable, the re-order after the alternative succeeds
-        every { orderBikeUseCase.orderBike(any()) } throws
+        every { orderBikeUseCase.orderBike(any(), any()) } throws
             BikeUnavailableException(BikeId("BIKE-TEST")) andThen OrderId("ORDER-2")
 
         val id = submit(age = 35, income = 3500.0)
@@ -274,6 +275,7 @@ class BikeLeasingProcessTest {
 
         // the alternative is clarified from the outside — the "external" completion of the user task
         process.completeAlternativeClarification(id, alternativeFound = true, bikeId = BikeId("BIKE-ALT"))
+        assertThat(instance).variables().containsEntry(FlowNodes.UserTaskClarifyAlternative.Variables.BIKE_ID.value, "BIKE-ALT")
         processEngine.continueToNextWaitState() // re-order succeeds -> parallel join -> handover wait state
 
         process.correlateHandoverReported(id)
@@ -301,7 +303,10 @@ class BikeLeasingProcessTest {
                 FlowNodes.EndEventApplicationRejected.ELEMENT_ID,
             )
 
-        verify(exactly = 2) { orderBikeUseCase.orderBike(id) }
+        verifyOrder {
+            orderBikeUseCase.orderBike(id, BikeId("BIKE-TEST"))
+            orderBikeUseCase.orderBike(id, BikeId("BIKE-ALT"))
+        }
         verify(exactly = 1) { activateLeasingUseCase.activate(id) }
     }
 
@@ -390,7 +395,7 @@ class BikeLeasingProcessTest {
 
     /** Drives a signed, insured application to the clarify-alternative task: the dealer has no bike. */
     private fun submitUntilBikeUnavailable(): ApplicationId {
-        every { orderBikeUseCase.orderBike(any()) } throws
+        every { orderBikeUseCase.orderBike(any(), any()) } throws
             BikeUnavailableException(BikeId("BIKE-TEST")) andThen OrderId("ORDER-2")
 
         val id = submit(age = 35, income = 3500.0)

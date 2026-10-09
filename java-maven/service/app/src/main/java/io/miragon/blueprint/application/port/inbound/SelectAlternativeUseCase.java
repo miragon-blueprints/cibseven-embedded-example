@@ -14,5 +14,10 @@ public interface SelectAlternativeUseCase {
 
     /** {@code bikeId} and {@code bikeModel} may be {@code null} when no alternative was found. */
     record Command(ApplicationId applicationId, boolean alternativeFound, BikeId bikeId, String bikeModel) {
+        public Command {
+            if (alternativeFound && bikeId == null) {
+                throw new IllegalArgumentException("An accepted alternative must name the bike");
+            }
+        }
     }
 }

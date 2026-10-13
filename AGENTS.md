@@ -71,7 +71,7 @@ package.json / .bpmnlintrc     root-level bpmnlint config + git-hook installer (
 
 ## Development Setup
 
-Two commands to a running service — Postgres, then the backend + engine on :8080:
+Two commands to a running service — Postgres, then the backend + engine on :8081:
 
 ```bash
 docker compose -f stack/docker-compose.yml up -d
@@ -93,10 +93,11 @@ cd java-maven && ./mvnw -DskipTests install && ./mvnw -pl service/app spring-boo
 | What | Port |
 |---|---|
 | Postgres | 5432 |
-| Backend (REST + `/engine-rest`) | 8080 |
-| CIB seven Cockpit / Tasklist / webapps | 8080/camunda (admin/admin) |
-| OpenAPI spec · Swagger UI | 8080/v3/api-docs · 8080/swagger-ui.html |
-| Actuator (health/liveness/readiness · prometheus) | 8080/actuator |
+| Backend (REST + `/engine-rest`) | 8081 |
+| CIB seven Cockpit / Tasklist / Admin | 8081/camunda (admin/admin) |
+| CIB seven webclient (new UI) | 8081/webapp (admin/admin) |
+| OpenAPI spec · Swagger UI | 8081/v3/api-docs · 8081/swagger-ui.html |
+| Actuator (health/liveness/readiness · prometheus) | 8081/actuator |
 
 Under Conductor the ports are fixed and the workspace runs `nonconcurrent`
 (see [ADR-0006](docs/adr/0006-fixed-ports-for-v1-portless-as-the-upgrade.md)).

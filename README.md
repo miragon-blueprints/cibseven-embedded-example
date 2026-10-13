@@ -47,7 +47,7 @@ You need **JDK 21** and **Docker** (or Podman).
 docker compose -f stack/docker-compose.yml up -d
 ```
 
-**2. Start the service** on :8080
+**2. Start the service** on :8081
 
 <!-- variant:kotlin-gradle -->
 ```bash
@@ -63,8 +63,9 @@ cd java-maven && ./mvnw -DskipTests install && ./mvnw -pl service/app spring-boo
 ```
 <!-- /variant:java-maven -->
 
-**3. Use it** — open the Cockpit / Tasklist at <http://localhost:8080/camunda> (admin/admin) or the
-Swagger UI at <http://localhost:8080/swagger-ui.html>, or drive the whole process over REST:
+**3. Use it** — open the Cockpit / Tasklist at <http://localhost:8081/camunda> or the new CIB seven
+webclient at <http://localhost:8081/webapp> (both admin/admin), the Swagger UI at
+<http://localhost:8081/swagger-ui.html>, or drive the whole process over REST:
 
 ```bash
 cd bruno && npx --yes @usebruno/cli@4.0.0 run . --env local -r

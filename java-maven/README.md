@@ -17,7 +17,7 @@ Run them from this directory; the Maven wrapper is included. Postgres comes from
 
 | Task | Command |
 |---|---|
-| Run the service on :8080 | `./mvnw -DskipTests install && ./mvnw -pl service/app spring-boot:run` |
+| Run the service on :8081 | `./mvnw -DskipTests install && ./mvnw -pl service/app spring-boot:run` |
 | Full build (arch + Checkstyle + unit + process + model validation + spec export) | `./mvnw verify` |
 | Mutation testing (gate 80) | `./mvnw -pl service/app -am test-compile org.pitest:pitest-maven:mutationCoverage` |
 | Regenerate the typed process API after editing a `.bpmn` | `./mvnw -pl service/app generate-sources` |

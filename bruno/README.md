@@ -24,7 +24,7 @@ npx --yes @usebruno/cli@4.0.0 run . --env local -r
 
 ## 📮 Start a case by hand
 
-`POST http://localhost:8080/api/bike-leasing`
+`POST http://localhost:8081/api/bike-leasing`
 
 ```json
 { "customerName": "…", "email": "…", "age": 35, "monthlyNetIncome": 3500, "bikeId": "BIKE-900", "bikeModel": "Gravel Explorer 900" }

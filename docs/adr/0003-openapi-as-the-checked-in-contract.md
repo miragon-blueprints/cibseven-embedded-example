@@ -53,9 +53,10 @@ Two things bite when this runs on the embedded CIB seven engine:
 
 - **Swagger UI vs. the CIB seven webclient.** The webapp registers its own resource handlers *and* its
   own `OpenAPI` bean. `OpenApiConfiguration`'s bean is marked `@Primary` so springdoc serves ours for
-  `/api/**`, and `/camunda`, `/swagger-ui.html` and `/v3/api-docs` coexist (verified at build time). If
-  a future upgrade breaks that, swap to `springdoc-openapi-starter-webmvc-api` (spec only, no UI) — a
-  consumer only needs `/v3/api-docs`.
+  `/api/**` (the spec export checks this at build time). `/camunda`, `/webapp`, `/swagger-ui.html` and
+  `/v3/api-docs` coexist on the running app; the test profile disables the webapps, so that part is
+  checked by hand. If a future upgrade breaks it, swap to `springdoc-openapi-starter-webmvc-api` (spec
+  only, no UI) — a consumer only needs `/v3/api-docs`.
 - **Jackson 3 date-time.** Spring Boot 4 ships Jackson 3, which defaults `WRITE_DATES_AS_TIMESTAMPS` on,
   and the webclient serves `/api` with its own mapper that ignores global config. springdoc types the
   fields as `string/date-time`, so DTO date fields are pinned with `@JsonFormat(shape = STRING)` to keep

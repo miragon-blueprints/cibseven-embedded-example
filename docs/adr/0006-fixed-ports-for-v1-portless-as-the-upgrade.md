@@ -21,14 +21,14 @@ clash. The headless stack binds just two ports (the same table published in `AGE
 
 | Port | Bound by | Serves |
 | ---- | -------- | ------ |
-| 8080 | Spring Boot app | the REST API, the embedded CIB seven webapp (Cockpit/Tasklist) at `/camunda`, `/engine-rest`, and `/v3/api-docs` |
+| 8081 | Spring Boot app | the REST API, the embedded CIB seven webapps (Cockpit/Tasklist at `/camunda`, the new webclient at `/webapp`), `/engine-rest`, and `/v3/api-docs` |
 | 5432 | Postgres | application tables **and** the shared CIB seven engine schema |
 
 **Portless is deferred, deliberately.** Of the collision sources, portless wraps *none*:
 
 | Collision source        | Port | Wrapped by portless? |
 | ----------------------- | ---- | -------------------- |
-| Spring Boot app         | 8080 | ❌ no |
+| Spring Boot app         | 8081 | ❌ no |
 | Postgres                | 5432 | ❌ no |
 | CIB seven engine schema | (shared DB schema in Postgres) | ❌ no |
 

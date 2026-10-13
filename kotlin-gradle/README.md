@@ -17,7 +17,7 @@ Run them from this directory. Postgres comes from `docker compose -f ../stack/do
 
 | Task | Command |
 |---|---|
-| Run the service on :8080 | `./gradlew :service:app:bootRun` |
+| Run the service on :8081 | `./gradlew :service:app:bootRun` |
 | Full build (arch + unit + process + model validation + spec export) | `./gradlew build` |
 | Mutation testing (gate 80) | `./gradlew :service:app:pitest` |
 | Regenerate the typed process API after editing a `.bpmn` | `./gradlew generateBpmnModels` |

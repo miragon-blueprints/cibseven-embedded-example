@@ -110,7 +110,7 @@ Under Conductor the ports are fixed and the workspace runs `nonconcurrent`
 | Backend (arch + unit + process + model validation + spec export) | `./gradlew build` |
 | Mutation testing (gate 80) | `./gradlew :service:app:pitest` |
 | Regenerate the typed BPMN process API (after editing a `.bpmn`) | `./gradlew generateBpmnModels` |
-| Regenerate the OpenAPI contract | `./gradlew :service:app:test --tests "io.miragon.blueprint.openapi.OpenApiSpecExportTest"` |
+| Regenerate the OpenAPI contract | `./gradlew :service:app:test --tests "io.miragon.blueprint.adapter.inbound.rest.OpenApiSpecExportTest"` |
 | Backend OCI image (`miravelo/cibseven-embedded-example`) | `./gradlew :service:app:bootBuildImage` |
 <!-- /variant:kotlin-gradle -->
 
@@ -161,7 +161,7 @@ hard rules:
   test requires every service task to use a delegate expression (`#{beanName}`).
 - Since bpmn-to-code 6 the API is node-centric: `<Process>ProcessApi.FlowNodes.<Node>` carries the
   element (`.id`, `ELEMENT_ID`), its `Variables` and its successors (`Next`). Process tests assert
-  the walked path as a compile-checked `ProcessPath` (`process/util/ProcessPathAssertions.kt`)
+  the walked path as a compile-checked `ProcessPath` (`adapter/process/ProcessPathAssertions.kt`)
   instead of hand-maintained element-id lists.
 - `bpmnlint` runs on staged `.bpmn` via `.githooks/pre-commit` (install: `npm run hooks:install`).
 
@@ -192,7 +192,7 @@ Verify the variant you touched — which, for a change in behaviour, is both.
 In `kotlin-gradle/`:
 
 - Backend service/controller: `./gradlew :service:app:test --tests "*<Name>Test"`
-- Architecture only: `./gradlew :service:app:test --tests "io.miragon.blueprint.architecture.*"`
+- Architecture only: `./gradlew :service:app:test --tests "io.miragon.blueprint.ArchitectureTest*"`
   <!-- /variant:kotlin-gradle -->
 
 <!-- variant:java-maven -->
@@ -205,7 +205,7 @@ In `java-maven/`:
 From the repo root:
 
 - Contract changed: regenerate the spec, then `git diff --exit-code openapi/openapi.json`
-- Process changed: regenerate the process API, then the `process.*` tests
+- Process changed: regenerate the process API, then the `adapter.process.*` tests
 
 ## Working with GitHub
 

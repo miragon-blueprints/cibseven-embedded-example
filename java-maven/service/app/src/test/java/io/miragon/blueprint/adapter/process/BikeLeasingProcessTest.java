@@ -1,11 +1,11 @@
-package io.miragon.blueprint.process;
+package io.miragon.blueprint.adapter.process;
 
-import static io.miragon.blueprint.process.util.JobExecutionUtils.continueToNextWaitState;
-import static io.miragon.blueprint.process.util.JobExecutionUtils.executeJobFor;
-import static io.miragon.blueprint.process.util.ProcessInstanceUtils.findProcessInstance;
-import static io.miragon.blueprint.process.util.ProcessPathAssertions.inAnyOrder;
-import static io.miragon.blueprint.process.util.ProcessPathAssertions.inWalkOrder;
-import static io.miragon.blueprint.process.util.TimerUtils.fireTimer;
+import static io.miragon.blueprint.adapter.process.JobExecutionUtils.continueToNextWaitState;
+import static io.miragon.blueprint.adapter.process.JobExecutionUtils.executeJobFor;
+import static io.miragon.blueprint.adapter.process.ProcessInstanceUtils.findProcessInstance;
+import static io.miragon.blueprint.adapter.process.ProcessPathAssertions.inAnyOrder;
+import static io.miragon.blueprint.adapter.process.ProcessPathAssertions.inWalkOrder;
+import static io.miragon.blueprint.adapter.process.TimerUtils.fireTimer;
 import static org.cibseven.bpm.engine.test.assertions.bpmn.BpmnAwareTests.assertThat;
 import static org.cibseven.bpm.engine.test.assertions.bpmn.BpmnAwareTests.init;
 import static org.mockito.ArgumentMatchers.any;
@@ -16,7 +16,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.miragon.blueprint.adapter.process.BikeLeasingProcessProcessApi.FlowNodes;
-import io.miragon.blueprint.adapter.process.CancelBikeOrderProcessApi;
 import io.miragon.blueprint.application.port.inbound.ActivateLeasingUseCase;
 import io.miragon.blueprint.application.port.inbound.BookCancellationCostsUseCase;
 import io.miragon.blueprint.application.port.inbound.CancelContractUseCase;

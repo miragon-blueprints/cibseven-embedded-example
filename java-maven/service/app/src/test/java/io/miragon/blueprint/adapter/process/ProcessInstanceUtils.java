@@ -1,8 +1,7 @@
-package io.miragon.blueprint.process.util;
+package io.miragon.blueprint.adapter.process;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.miragon.blueprint.adapter.process.BikeLeasingProcessProcessApi;
 import io.miragon.blueprint.domain.leasing.ApplicationId;
 import org.cibseven.bpm.engine.RuntimeService;
 import org.cibseven.bpm.engine.runtime.ProcessInstance;

@@ -44,7 +44,7 @@ cd java-maven && ./mvnw -DskipTests install && ./mvnw -pl service/app spring-boo
 | Postgres | 5432 |
 | Backend (REST + `/engine-rest`) | 8081 |
 | CIB seven Cockpit / Tasklist / Admin | 8081/camunda (admin/admin) |
-| CIB seven webclient (new UI) | 8081/webapp (admin/admin) |
+| CIB seven webclient (new UI, cockpit entry point) | 8081/webapp/#/seven/auth/start (admin/admin) |
 | OpenAPI spec · Swagger UI | 8081/v3/api-docs · 8081/swagger-ui.html |
 | Actuator (health · liveness/readiness · prometheus) | 8081/actuator |
 
@@ -62,7 +62,7 @@ cd bruno && npx --yes @usebruno/cli@4.0.0 run . --env local -r
 The happy path submits an application, signs the contract, and reports the handover; the other numbered
 folders cover escalation, abort, not-solvent, bike-unavailable, the incident demo, the list/inbox
 endpoints, a declined alternative and an invalid request. Confirm <http://localhost:8081/camunda> and
-<http://localhost:8081/webapp> (both admin/admin), <http://localhost:8081/swagger-ui.html> and
+<http://localhost:8081/webapp/#/seven/auth/start> (both admin/admin), <http://localhost:8081/swagger-ui.html> and
 <http://localhost:8081/actuator/health> (status `UP`) all load.
 
 ## Run it in containers
@@ -97,7 +97,7 @@ docker run --rm -p 8081:8081 \
   miravelo/cibseven-embedded-example:1.0-SNAPSHOT
 ```
 
-Then open <http://localhost:8081/camunda> and <http://localhost:8081/webapp> (both admin/admin),
+Then open <http://localhost:8081/camunda> and <http://localhost:8081/webapp/#/seven/auth/start> (both admin/admin),
 <http://localhost:8081/swagger-ui.html> and <http://localhost:8081/actuator/health>.
 
 **Podman:** the image build needs a Docker-API socket. Expose podman's, then build the image as above:

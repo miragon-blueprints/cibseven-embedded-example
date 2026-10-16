@@ -63,8 +63,8 @@ cd java-maven && ./mvnw -DskipTests install && ./mvnw -pl service/app spring-boo
 ```
 <!-- /variant:java-maven -->
 
-**3. Use it** — open the Cockpit / Tasklist at <http://localhost:8081/camunda> or the new CIB seven
-webclient at <http://localhost:8081/webapp> (both admin/admin), the Swagger UI at
+**3. Use it** — open the new CIB seven webclient at <http://localhost:8081/webapp/#/seven/auth/start>
+or the classic Cockpit / Tasklist at <http://localhost:8081/camunda> (both admin/admin), the Swagger UI at
 <http://localhost:8081/swagger-ui.html>, or drive the whole process over REST:
 
 ```bash

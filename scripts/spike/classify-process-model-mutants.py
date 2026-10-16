@@ -6,7 +6,8 @@ from pathlib import Path
 
 ASSERTION_TYPES = ("AssertionError", "AssertionFailedError", "MultipleFailuresError")
 CONTEXT_FAILURE_MARKERS = ("Failed to load ApplicationContext", "ApplicationContext failure threshold")
-DRIVER_MARKERS = ("no async-continuation job found",)
+DRIVER_MARKERS = ("no async-continuation job found", "no timer job found")
+CASCADE_MARKERS = ("Query return",)
 
 
 def failures_of(result_dir):
@@ -19,6 +20,8 @@ def failures_of(result_dir):
 def classify_failure(problem):
     kind = problem.get("type") or ""
     detail = problem.get("message") or ""
+    if any(marker in detail for marker in CASCADE_MARKERS):
+        return "CASCADE_FROM_EARLIER_TEST"
     if any(marker in detail for marker in CONTEXT_FAILURE_MARKERS):
         return "INVALID_MODEL"
     if any(marker in detail for marker in DRIVER_MARKERS) or kind.endswith("NullPointerException"):

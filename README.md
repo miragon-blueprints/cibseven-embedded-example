@@ -1,12 +1,6 @@
 # MiraVelo bike leasing (CIB seven embedded)
 
-<!-- variant:kotlin-gradle -->
-[![Pre-Merge Kotlin/Gradle](https://github.com/miragon-blueprints/cibseven-embedded-example/actions/workflows/pre-merge-kotlin-gradle.yml/badge.svg)](https://github.com/miragon-blueprints/cibseven-embedded-example/actions/workflows/pre-merge-kotlin-gradle.yml)
-<!-- /variant:kotlin-gradle -->
-<!-- variant:java-maven -->
-[![Pre-Merge Java/Maven](https://github.com/miragon-blueprints/cibseven-embedded-example/actions/workflows/pre-merge-java-maven.yml/badge.svg)](https://github.com/miragon-blueprints/cibseven-embedded-example/actions/workflows/pre-merge-java-maven.yml)
-<!-- /variant:java-maven -->
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Pre-Merge Kotlin/Gradle](https://github.com/miragon-blueprints/cibseven-embedded-example/actions/workflows/pre-merge-kotlin-gradle.yml/badge.svg)](https://github.com/miragon-blueprints/cibseven-embedded-example/actions/workflows/pre-merge-kotlin-gradle.yml) [![Pre-Merge Java/Maven](https://github.com/miragon-blueprints/cibseven-embedded-example/actions/workflows/pre-merge-java-maven.yml/badge.svg)](https://github.com/miragon-blueprints/cibseven-embedded-example/actions/workflows/pre-merge-java-maven.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 A solution template to fork for automating a business process on [CIB seven](https://cibseven.org)
 (the community fork of Camunda 7): one complete, production-shaped BPMN service on an **embedded
@@ -42,17 +36,13 @@ Requires JDK 21 and Docker or Podman.
 
 ```bash
 docker compose -f stack/docker-compose.yml up -d   # PostgreSQL on :5432
-```
-<!-- variant:kotlin-gradle -->
-```bash
+# variant:kotlin-gradle
 cd kotlin-gradle && ./gradlew :service:app:bootRun   # service + embedded engine on :8081
-```
-<!-- /variant:kotlin-gradle -->
-<!-- variant:java-maven -->
-```bash
+# /variant:kotlin-gradle
+# variant:java-maven
 cd java-maven && ./mvnw -DskipTests install && ./mvnw -pl service/app spring-boot:run   # service + embedded engine on :8081
+# /variant:java-maven
 ```
-<!-- /variant:java-maven -->
 
 | What | URL | Login |
 |---|---|---|

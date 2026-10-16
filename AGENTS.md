@@ -95,7 +95,7 @@ cd java-maven && ./mvnw -DskipTests install && ./mvnw -pl service/app spring-boo
 | Postgres | 5432 |
 | Backend (REST + `/engine-rest`) | 8081 |
 | CIB seven Cockpit / Tasklist / Admin | 8081/camunda (admin/admin) |
-| CIB seven webclient (new UI) | 8081/webapp (admin/admin) |
+| CIB seven webclient (new UI, cockpit entry point) | 8081/webapp/#/seven/auth/start (admin/admin) |
 | OpenAPI spec · Swagger UI | 8081/v3/api-docs · 8081/swagger-ui.html |
 | Actuator (health/liveness/readiness · prometheus) | 8081/actuator |
 

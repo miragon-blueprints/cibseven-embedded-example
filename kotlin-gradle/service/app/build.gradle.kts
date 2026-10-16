@@ -58,6 +58,14 @@ tasks.test {
 val mutationTargetClasses = (project.findProperty("mutationTargetClasses") as String?)
     ?.split(",")?.map(String::trim)?.filter(String::isNotEmpty)
 
+val includeProcessTestsInMutation = project.hasProperty("pitProcessSpike")
+val requestedMutationEngine = project.findProperty("pitMutationEngine") as String?
+val mutateLinesWithKotlinNullChecks = project.hasProperty("pitMutateLinesWithKotlinNullChecks")
+
+if (requestedMutationEngine == "descartes") {
+    dependencies { pitest("eu.stamp-project:descartes:1.3.4") }
+}
+
 pitest {
     junit5PluginVersion.set("1.2.2")
     targetClasses.set(mutationTargetClasses ?: listOf("io.miragon.blueprint.*"))
@@ -69,22 +77,31 @@ pitest {
             "io.miragon.blueprint.CibsevenBikeLeasingApplication*",
             "io.miragon.blueprint.BikeCatalogueSeeder*",
             "io.miragon.blueprint.adapter.inbound.rest.DevCorsConfiguration*",
-            "io.miragon.blueprint.adapter.inbound.cibseven.*",
-        ),
+        ) + if (includeProcessTestsInMutation) emptyList() else listOf("io.miragon.blueprint.adapter.inbound.cibseven.*"),
     )
     excludedTestClasses.set(
-        listOf(
-            "io.miragon.blueprint.process.*",
-            "io.miragon.blueprint.architecture.*",
-        ),
+        listOf("io.miragon.blueprint.architecture.*") +
+            if (includeProcessTestsInMutation) emptyList() else listOf("io.miragon.blueprint.process.*"),
     )
+    fullMutationMatrix.set(includeProcessTestsInMutation)
+    requestedMutationEngine?.let { mutationEngine.set(it) }
     threads.set(Runtime.getRuntime().availableProcessors())
     timeoutFactor.set(BigDecimal("2.0"))
-    avoidCallsTo.set(listOf("kotlin.jvm.internal", "mu", "org.slf4j", "io.github.oshai"))
-    mutators.set(listOf("DEFAULTS"))
+    avoidCallsTo.set(
+        (if (mutateLinesWithKotlinNullChecks) emptyList() else listOf("kotlin.jvm.internal")) +
+            listOf("mu", "org.slf4j", "io.github.oshai"),
+    )
+    mutators.set(if (requestedMutationEngine == "descartes") emptyList() else listOf("DEFAULTS"))
     outputFormats.set(listOf("HTML", "XML"))
     timestampedReports.set(false)
     mutationThreshold.set(80)
+}
+
+tasks.register<JavaExec>("generateProcessModelMutants") {
+    dependsOn("testClasses")
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("io.miragon.blueprint.process.mutation.ProcessModelMutantGeneratorKt")
+    args("$projectDir/src/main/resources", layout.buildDirectory.dir("process-model-mutants").get().asFile.path)
 }
 
 tasks.withType<BootJar> {

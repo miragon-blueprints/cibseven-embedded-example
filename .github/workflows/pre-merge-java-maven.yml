@@ -45,6 +45,10 @@ jobs:
       - name: Verify the committed OpenAPI contract is in sync
         run: git diff --exit-code -- openapi/openapi.json
 
+      # The build regenerates the typed process API from the models; fail if the committed files are stale.
+      - name: Verify the committed process API is in sync
+        run: git diff --exit-code -- java-maven/service/app/src/main/java/io/miragon/blueprint/adapter/process
+
   mutation:
     name: Mutation testing (PIT, gate 80) (Java/Maven)
     runs-on: ubuntu-latest

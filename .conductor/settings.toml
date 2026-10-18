@@ -11,7 +11,7 @@
 [scripts]
 run_mode = "nonconcurrent"
 
-# One-time setup per workspace: install BPMN linting tooling + git hooks.
+# One-time setup per workspace: install the BPMN tooling (bpmnlint, bpmn-cli, operate) + git hooks.
 setup = """
 npm ci
 npm run hooks:install

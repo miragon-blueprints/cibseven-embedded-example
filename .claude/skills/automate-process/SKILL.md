@@ -75,12 +75,13 @@ to the other, then regenerate, wire and test **both**.
    | Domain | `domain.{leasing,bike}` | a value object per new variable (`ApplicationId`, `BikeId`, `OrderId`) |
    | Inbound port | `application.port.inbound` | one `*UseCase`/`*Query` per delegate or endpoint |
    | Service | `application.service` | one `*Service` per inbound port |
-   | Delegate / listener | `adapter.inbound.cibseven` | delegate extends `BaseDelegate` (pattern `OrderBikeDelegate`); listener pattern `ClarifyAlternativeTaskListener` |
+   | Delegate / listener | `adapter.inbound.cibseven` | skill `create-delegate`: the class with its unit test |
    | Outbound port | `application.port.outbound` | `LeasingProcess`: one method per message or user-task completion; `TaskInboxPort` for open tasks |
    | Process adapter | `adapter.outbound.cibseven` | `LeasingProcessAdapter`, `TaskInboxAdapter`: correlate by business key (the application id) |
 
    A step driven over REST also gets its controller, the re-exported `openapi.json` and a Bruno
-   scenario (see `AGENTS.md` → Build Commands).
+   request (skill `create-rest-controller`); new persisted state gets its adapter and migration
+   (skill `create-persistence-adapter`).
 5. **Process tests.** Derive the scenarios from the model's paths: every new outgoing flow of a
    gateway, every boundary event, every event subprocess path gets a test in the test tree's
    `adapter/process/` that asserts the walked path through `ProcessPathAssertions`, a typed path from

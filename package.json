@@ -9,8 +9,8 @@
   },
   "devDependencies": {
     "@miragon/bpmn-cli": "0.7.0",
-    "@miragon/bpmnlint-plugin-rules": "0.11.1",
+    "@miragon/bpmnlint-plugin-rules": "0.12.1",
     "@miragon/operate": "0.9.0",
-    "bpmnlint": "11.14.0"
+    "bpmnlint": "11.15.0"
   }
 }

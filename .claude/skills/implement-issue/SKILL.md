@@ -35,9 +35,10 @@ Write the plan as a checklist along the chain, skipping hops the issue does not 
 
 1. Model change (skill `automate-process`) and the regenerated process API
 2. Domain and application: value objects, ports, services, domain rules
-3. Delegates and listeners, with a process test per new path
-4. REST and persistence: controller with its `@WebMvcTest`, the re-exported `openapi/openapi.json`;
-   entity, adapter, Flyway migration and `@DataJpaTest`
+3. Delegates and listeners with their unit tests and a process test per new path (skill
+   `create-delegate`)
+4. REST and persistence (skills `create-rest-controller`, `create-persistence-adapter`), including the
+   re-exported `openapi/openapi.json` and the Flyway migration
 5. A Bruno scenario for every path a client drives over REST
 6. Docs: `bruno/README.md`, `docs/assets/bike-leasing.png` if the picture changed, an ADR if a decision
    is taken (skill `create-adr`)
@@ -60,8 +61,10 @@ in `AGENTS.md`. When the plan turns out wrong, stop and say what changed instead
 Run the checks of "Before opening a PR" in `CONTRIBUTING.md` for every variant you touched, plus
 `npm run lint:bpmn` if a model changed. A targeted run proves nothing about tests you did not touch.
 If the stack runs, drive the new path with Bruno and diagnose a stuck case with
-`npx operate inspect --business-key <applicationId>`. Then run skill `review-change` on the working
-tree (it covers staged and new files) and fix what it reports.
+`npx operate inspect --business-key <applicationId>`. Then let the agent `review-vertical-slice` walk
+the feature and run skill `review-change` on the working tree (it covers staged and new files); fix
+what they report. An agent that is not loaded in the session is applied by reading its file in
+`.claude/agents/`.
 
 ## 6. Report
 

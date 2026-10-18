@@ -205,6 +205,7 @@ TDD. Match the test style to the layer:
 | domain | plain unit tests |
 | application service | unit tests with mocked ports |
 | `adapter.inbound.rest` | `@WebMvcTest` with the use case mocked |
+| `adapter.inbound.cibseven` | unit test per new delegate with the port mocked (skill `create-delegate`), plus the process test of its path |
 | `adapter.outbound.db` | `@DataJpaTest` |
 | process end-to-end | CIB seven process tests, paths asserted via `ProcessPath` |
 
@@ -285,7 +286,9 @@ them as recipes:
 | skill `automate-process` | change an executable model and its glue code, validate it |
 | skill `review-change` | review a diff or PR, findings by severity |
 | skill `create-adr` | record a decision in `docs/adr/` |
+| skills `create-rest-controller`, `create-persistence-adapter`, `create-delegate` | one building block of a layer, with its production and test pattern |
 | agent `review-process` | read-only audit of the models against their glue code and tests |
+| agent `review-vertical-slice` | read-only walk of one feature from the BPMN element to the Bruno scenario |
 
 ## Working with GitHub
 

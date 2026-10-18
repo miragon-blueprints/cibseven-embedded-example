@@ -199,7 +199,8 @@ git diff --exit-code openapi/openapi.json    # the API contract must not drift
 
 All of these run in CI on every pull request (JDK 21). Before opening a PR, sanity-check that a feature
 is wired end to end across the backend — BPMN element → outbound port → service → inbound port → REST
-controller → `openapi.json` → Bruno scenario.
+controller → `openapi.json` → Bruno scenario. The Claude Code agent `review-vertical-slice` walks this
+chain for you.
 
 ## Reporting bugs / requesting features
 

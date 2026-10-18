@@ -13,14 +13,22 @@ Workflows, loaded when a task matches their description.
 | `automate-process` | change an executable BPMN model, wire its glue code, validate it (three nets) |
 | `review-change` | review a PR or diff, findings by severity with a failure scenario |
 | `create-adr` | record a decision in `docs/adr/` |
+| `create-rest-controller` | one endpoint with its `@WebMvcTest`, carried through `openapi.json` to Bruno |
+| `create-persistence-adapter` | entity, repository, mapper, adapter, migration and `@DataJpaTest` |
+| `create-delegate` | one JavaDelegate or listener with its unit test and the process test of its path |
+
+The layer skills (`create-*`) are small recipes next to the workflows: each points at the existing
+classes as the production pattern and states the test pattern, so the agent writes the test first and
+matches the code. `implement-issue` and `automate-process` call them.
 
 ## Subagents — `.claude/agents/<name>.md`
 
-Read-only reviewers with their own context.
+Read-only reviewers with their own context, loaded at session start.
 
 | Agent | Does |
 |---|---|
 | `review-process` | checks the models against their glue code, tests and modelling conventions |
+| `review-vertical-slice` | walks one feature end to end (BPMN → ports → service → controller or delegate → process test → `openapi.json` → Bruno) |
 
 ## Settings and hooks
 

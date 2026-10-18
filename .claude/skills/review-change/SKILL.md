@@ -13,8 +13,8 @@ mutation 80) run in CI; do not restate them, check what they cannot see. Do chec
 actually ran: the mutation gate is diff-scoped and skips when no main class changed. Generic code
 review is what the built-in review tooling does; this skill adds what only this repo knows.
 
-The agent `review-process` is loaded at session start. If it is not available, read
-`.claude/agents/review-process.md` and apply it yourself.
+The agents `review-process` and `review-vertical-slice` are loaded at session start. If one is not
+available, read its file in `.claude/agents/` and apply it yourself.
 
 ## 1. Collect the context
 
@@ -43,7 +43,8 @@ and packages instead: a leftover reference is the typical defect.
 | a controller method or a DTO | `@Operation(operationId)` on the method, the re-exported `openapi/openapi.json`, a Bruno request |
 | a `.bpmn` | the regenerated `adapter/process`, a process test per new path, Bruno updated for renamed element ids; run the agent `review-process` |
 | the DMN or a form | a process test for the decision or the user task; the form `id` still matching the `formRef` |
-| a delegate, listener or process adapter | a process test for the path it serves; run the agent `review-process` |
+| a delegate, listener or process adapter | its unit test, a process test for the path it serves; run the agent `review-process` |
+| a whole feature | run the agent `review-vertical-slice` |
 | a service throwing what a delegate maps to `BpmnError` | `noRollbackFor` on `@Transactional` |
 | a user-visible REST flow | the Bruno scenario, and the scenario list in `bruno/README.md` |
 | the incident demo (`bruno/06-incident-demo`) | still produces its incident |

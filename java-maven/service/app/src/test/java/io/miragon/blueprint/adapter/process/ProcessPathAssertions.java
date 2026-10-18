@@ -16,11 +16,11 @@ public final class ProcessPathAssertions {
      * within one sequential branch — walk parallel branches as separate paths.
      */
     public static String[] inWalkOrder(PathWalk.Trail path) {
-        return path.getIds().toArray(String[]::new);
+        return path.getIds();
     }
 
     public static String[] inWalkOrder(PathWalk<?, ?> path) {
-        return path.getIds().toArray(String[]::new);
+        return path.getIds();
     }
 
     /**
@@ -28,6 +28,6 @@ public final class ProcessPathAssertions {
      * engine does not guarantee an order — e.g. compensation handlers.
      */
     public static String[] inAnyOrder(PathWalk.Trail path) {
-        return path.getDistinctIds().toArray(String[]::new);
+        return path.getDistinctIds();
     }
 }

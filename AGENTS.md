@@ -65,7 +65,7 @@ docs/                          Architecture Decision Records + diagrams
 stack/                         Postgres dev stack (docker compose)
 .github/                       pre-merge + nightly pipelines + Dependabot
 .githooks/                     pre-commit hook (bpmnlint on staged .bpmn)
-.claude/                       Claude Code settings: guards on generated files, bpmnlint hook, plugins
+.claude/                       Claude Code skills, review agent, guards on generated files, hook, plugins
 .operate.json                  operate's engine profile: the local engine on :8081
 scripts/create-starter.sh      strips the repo down to one variant (docs/starter.md)
 package.json / .bpmnlintrc     root-level bpmnlint config, bpmn-cli, operate + git-hook installer
@@ -275,6 +275,17 @@ Two CLIs come as Claude Code plugins (`.claude/settings.json`) and are pinned in
 
 A PostToolUse hook (`.claude/hooks/lint-bpmn.sh`) runs bpmnlint after every edit of an executable
 `.bpmn` and hands the findings back.
+
+Skills and agents live in `.claude/` (see [.claude/README.md](.claude/README.md)); other agents can read
+them as recipes:
+
+| Use | When |
+|---|---|
+| skill `implement-issue` | take a GitHub issue from plan (with approval) to a verified change |
+| skill `automate-process` | change an executable model and its glue code, validate it |
+| skill `review-change` | review a diff or PR, findings by severity |
+| skill `create-adr` | record a decision in `docs/adr/` |
+| agent `review-process` | read-only audit of the models against their glue code and tests |
 
 ## Working with GitHub
 

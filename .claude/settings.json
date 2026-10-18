@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "BPMN_KEEP_FLOW_IDS": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew *)",
+      "Bash(./mvnw *)",
+      "Bash(npm run lint:bpmn)",
+      "Bash(gh issue view *)",
+      "Bash(gh issue list *)",
+      "Bash(gh pr view *)",
+      "Bash(gh pr diff *)",
+      "Bash(gh pr checks *)"
+    ],
+    "deny": [
+      "Edit(/**/adapter/process/*ProcessApi.*)",
+      "Edit(/**/adapter/process/ServiceTasks.*)",
+      "Edit(/**/adapter/process/Messages.*)",
+      "Edit(/**/adapter/process/ProcessVariables.*)",
+      "Edit(/**/adapter/process/Errors.*)",
+      "Edit(/**/adapter/process/Escalations.*)",
+      "Edit(/openapi/openapi.json)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/lint-bpmn.sh",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  },
+  "extraKnownMarketplaces": {
+    "miragon-bpmn": {
+      "source": {
+        "source": "github",
+        "repo": "Miragon/bpmn-cli",
+        "ref": "v0.7.0"
+      }
+    },
+    "miragon": {
+      "source": {
+        "source": "github",
+        "repo": "Miragon/operate",
+        "ref": "v0.9.0"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "bpmn-cli@miragon-bpmn": true,
+    "operate@miragon": true
+  }
+}

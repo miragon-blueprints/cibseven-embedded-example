@@ -1,0 +1,9 @@
+{
+  "defaultProfile": "local",
+  "profiles": {
+    "local": {
+      "url": "http://localhost:8081/engine-rest",
+      "auth": { "type": "none" }
+    }
+  }
+}

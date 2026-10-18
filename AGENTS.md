@@ -65,9 +65,22 @@ docs/                          Architecture Decision Records + diagrams
 stack/                         Postgres dev stack (docker compose)
 .github/                       pre-merge + nightly pipelines + Dependabot
 .githooks/                     pre-commit hook (bpmnlint on staged .bpmn)
+.claude/                       Claude Code settings: guards on generated files, bpmnlint hook, plugins
+.operate.json                  operate's engine profile: the local engine on :8081
 scripts/create-starter.sh      strips the repo down to one variant (docs/starter.md)
-package.json / .bpmnlintrc     root-level bpmnlint config + git-hook installer (npm run lint:bpmn)
+package.json / .bpmnlintrc     root-level bpmnlint config, bpmn-cli, operate + git-hook installer
 ```
+
+## Ground Rules for Changes
+
+- **Ask before deciding business logic.** Gateway conditions, deadlines, error paths and who works a
+  user task are business decisions: propose, don't pick.
+- **Derive, never invent.** Details come from the issue, the model or the code; mark anything else
+  as an assumption.
+- **Keep element ids stable.** The generated process API and the process tests follow a rename
+  through the compiler, but the Bruno scenarios name element ids as strings
+  (`serviceTask_orderBike`, `userTask_clarifyAlternative`, …): a rename updates `bruno/` in the same
+  change.
 
 ## Development Setup
 
@@ -140,20 +153,38 @@ source-level tool for the rules bytecode cannot express) and **fail the build** 
 Read `HexagonalArchitectureTest.kt` and `NamingConventionArchitectureTest.kt` before writing code. The
 hard rules:
 
-- **One inbound port per controller.** `onlyFulfilOneUseCase` counts constructor params in
-  `application.port.inbound` and fails at >1. An inbox listing + a completion are two controllers.
+- **One inbound port per controller and per delegate.** `onlyFulfilOneUseCase` counts constructor
+  params in `application.port.inbound` and fails at >1. An inbox listing + a completion are two
+  controllers.
 - **No new top-level `config` package.** The containment rule ignores only *direct* members of the
   root package, so `io.miragon.blueprint.config` would fail. Cross-cutting `@Configuration` (CORS,
   OpenAPI, error handling) goes in `adapter.inbound.rest` — the `Configuration` suffix is whitelisted
   there.
 - **`adapter/process` is generated.** Never hand-edit `*ProcessApi` or the shared
   `ServiceTasks`/`Messages`/`ProcessVariables`/`Errors`/`Escalations` files; edit the `.bpmn` and
-  regenerate.
+  regenerate. The same holds for `openapi/openapi.json`. `.claude/settings.json` denies these edits,
+  and CI fails when the committed files are stale.
 - **Suffixes:** inbound port `UseCase|Query`; outbound `Port|Repository|Process`; service
   `Service|Configuration`; `adapter.inbound.rest` `Controller|Dto|Input|Mapper|Configuration`;
   `adapter.inbound.cibseven` `Delegate|Worker|Listener`; `adapter.outbound`
   `PersistenceAdapter|Adapter|Mapper|Entity|Repository`.
 - **Spring Data types stop at the adapter.** Ports own their own `Filter`/`Page`/`Criteria` types.
+
+No test checks it, but it holds too: **the domain has no clock.** Pass the time in; never call
+`now()` in `domain/`.
+
+## Process Glue
+
+- A delegate extends `BaseDelegate` and overrides `executeTask`. It reads the application id from
+  the business key (`execution.processBusinessKey`) and every other variable through
+  `<Process>ProcessApi.FlowNodes.<Node>.Variables`, never a raw string.
+- A domain exception becomes `BpmnError(Errors.<X>.code, …)` where the model has a boundary event
+  for it (see `OrderBikeDelegate`).
+- A `@Transactional` service behind a delegate that throws the exception the delegate maps declares
+  it in `noRollbackFor` (see `OrderBikeService`). Otherwise the engine's job transaction is marked
+  rollback-only and the error path never runs.
+- Process variables stay minimal: ids, plus the inputs a gateway or decision reads (the DMN's `age`
+  and `monthlyNetIncome`). The engine is not a database.
 
 ## BPMN Quality Gates
 
@@ -176,6 +207,23 @@ TDD. Match the test style to the layer:
 | `adapter.inbound.rest` | `@WebMvcTest` with the use case mocked |
 | `adapter.outbound.db` | `@DataJpaTest` |
 | process end-to-end | CIB seven process tests, paths asserted via `ProcessPath` |
+
+- **Mock ports, not the domain.** Build real domain objects with the test factory
+  (`domain/leasing/TestObjectBuilder`).
+<!-- variant:kotlin-gradle -->
+- **Strict mocks, verified calls in unit tests.** Verify the exact port call, then
+  `confirmVerified`; a relaxed mock lets a removed call survive the mutation gate. Process tests may
+  relax the ports they do not assert on.
+<!-- /variant:kotlin-gradle -->
+<!-- variant:java-maven -->
+- **Strict mocks, verified calls in unit tests.** Verify the exact port call, then
+  `verifyNoMoreInteractions`; a lenient mock lets a removed call survive the mutation gate. Process
+  tests may relax the ports they do not assert on.
+<!-- /variant:java-maven -->
+- **Build the expected value independently**, never from the object the code under test received.
+- **Seed a persistence test directly** (`@Sql`), not through the adapter under test, and flush and
+  clear before reading back.
+- Tests run against H2 with Flyway off; no Postgres needed.
 
 **Mutation testing gates PRs at 80**: a test that executes without asserting
 will fail CI. Coverage says a line ran; mutation says a test would have noticed. The PR gate runs
@@ -207,10 +255,32 @@ From the repo root:
 - Contract changed: regenerate the spec, then `git diff --exit-code openapi/openapi.json`
 - Process changed: regenerate the process API, then the `adapter.process.*` tests
 
+## Agent Tooling
+
+Two CLIs come as Claude Code plugins (`.claude/settings.json`) and are pinned in the root
+`package.json`:
+
+- **bpmn-cli** (`npx bpmn`, skill `bpmn-cli:bpmn`) for every change to a `.bpmn`: semantic edits, no
+  XML by hand, so the diagram (BPMNDI) stays intact. `BPMN_KEEP_FLOW_IDS=1` keeps flow ids stable.
+  <!-- variant:blueprint -->
+  Edit one variant's model, then copy the file to the other variant.
+  <!-- /variant:blueprint -->
+- **operate** (`npx operate`, skill `operate:operate`, `/operate:status`) for the local engine, via
+  `.operate.json`. Run `npx operate guide` before using it. It reads and repairs
+  (`inspect --business-key <applicationId>`, `status`, `incident`, history, `retry`). It never
+  deploys: the service deploys the models from its classpath, and a hand deploy is a version the
+  generated process API does not know. It never moves a case either (correlating a message,
+  completing a user task): that is a business action, taken by a client of the app's API or by a
+  human in the Tasklist, not by an agent.
+
+A PostToolUse hook (`.claude/hooks/lint-bpmn.sh`) runs bpmnlint after every edit of an executable
+`.bpmn` and hands the findings back.
+
 ## Working with GitHub
 
 Use the `gh` CLI. Write everything (issues, PRs, commit messages) in **English**. Use
-**Conventional Commits** (`feat:`, `fix:`, `test:`, `chore:`, `docs:`, `ci:`, `build:`).
+**Conventional Commits** (`feat:`, `fix:`, `test:`, `chore:`, `docs:`, `ci:`, `build:`). Commit,
+push, open a PR or change an issue only when asked.
 
 ## ADRs
 

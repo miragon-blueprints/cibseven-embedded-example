@@ -8,7 +8,7 @@ are welcome — bug reports, feature ideas, docs, and code.
 ```bash
 git clone git@github.com:miragon-blueprints/cibseven-embedded-example.git
 cd cibseven-embedded-example
-npm ci && npm run hooks:install   # BPMN lint + git hooks
+npm ci && npm run hooks:install   # bpmnlint, bpmn-cli, operate + git hooks
 ```
 
 You need **JDK 21** and **Docker (or Podman)** for Postgres. BPMN linting uses Node (the root
@@ -135,8 +135,15 @@ The build, mutation-testing and code-generation commands are listed in the READM
 From the repo root:
 
 ```bash
-npm run lint:bpmn        # bpmnlint the .bpmn models
+npm run lint:bpmn                                    # bpmnlint the .bpmn models
+npx bpmn guide --short                               # read, change, validate or render a model
+npx operate inspect --business-key <applicationId>   # where a running case waits and why
+npx operate status                                   # incidents and jobs at a glance
 ```
+
+bpmn-cli and operate are also Claude Code plugins (see `AGENTS.md`). Dependabot ignores them:
+bump each one by hand in two places together, its exact version in the root `package.json` and the
+`ref` of its marketplace in `.claude/settings.json`.
 
 ## Ground rules
 

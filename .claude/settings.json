@@ -52,10 +52,17 @@
         "repo": "Miragon/operate",
         "ref": "v0.9.0"
       }
+    },
+    "miragon-blueprints": {
+      "source": {
+        "source": "github",
+        "repo": "miragon-blueprints/.github"
+      }
     }
   },
   "enabledPlugins": {
     "bpmn-cli@miragon-bpmn": true,
-    "operate@miragon": true
+    "operate@miragon": true,
+    "blueprint-tools@miragon-blueprints": true
   }
 }
